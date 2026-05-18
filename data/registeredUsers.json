@@ -1,0 +1,66 @@
+[
+  {
+    "username": "nanna",
+    "email": "malothsukya12@gmail.com",
+    "password": "rey",
+    "confirmPassword": "rey",
+    "role": "student",
+    "department": ""
+  },
+  {
+    "username": "akhil",
+    "email": "akhil12@gmail.com",
+    "password": "12345",
+    "confirmPassword": "1234",
+    "role": "student",
+    "department": ""
+  },
+  {
+    "username": "nanna",
+    "email": "akhil12@gmail.com",
+    "password": "rey",
+    "confirmPassword": "rey",
+    "role": "student",
+    "department": ""
+  },
+  {
+    "username": "nanna",
+    "email": "akhil12@gmail.com",
+    "password": "rey",
+    "confirmPassword": "rey",
+    "role": "student",
+    "department": ""
+  },
+  {
+    "username": "nanna",
+    "email": "akhil12@gmail.com",
+    "password": "rey",
+    "confirmPassword": "rey",
+    "role": "student",
+    "department": ""
+  },
+  {
+    "username": "pawar Mothilal",
+    "email": "mothi25@gmail.com",
+    "password": "mothi",
+    "confirmPassword": "mothi",
+    "role": "student",
+    "department": "department: role === \"admin\" ? department : null,"
+  },
+  {
+    "username": "dharani dharan",
+    "email": "dharanidharan@gmail.com",
+    "password": "venky12",
+    "confirmPassword": "venky",
+    "role": "student",
+    "department": ""
+  },
+  {
+    "username": "venky12",
+    "email": "malothvenky12@gmail.com",
+    "password": "Venky@25",
+    "confirmPassword": "Venky@25",
+    "role": "student",
+    "department": ""
+  }
+]

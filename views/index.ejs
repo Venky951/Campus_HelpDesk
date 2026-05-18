@@ -1,0 +1,81 @@
+<%- include('partials/head', { title: 'Campus Helpdesk System' }) %>
+</head>
+<body class="bg-slate-50 text-gray-800">
+
+  <!-- Navbar -->
+  <%- include('partials/indexnav') %>
+  <!-- Hero Section -->
+  <section class="h-[80vh] flex items-center justify-center text-center">
+    <div class="max-w-2xl">
+      <h1 class="text-5xl font-bold mb-6">
+        Campus Helpdesk System
+      </h1>
+      <p class="text-lg text-gray-600 mb-8">
+        A simple platform for students to raise issues, 
+        track complaints, and get faster resolutions.
+      </p>
+      <div class="space-x-4">
+        <a href="/register" 
+           class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+          Get Started
+        </a>
+        <a href="/login" 
+           class="border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition">
+          Login
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="px-12 py-20 text-center">
+    <h2 class="text-3xl font-bold mb-10">Features</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 transition">
+        <h3 class="text-xl font-semibold mb-3">Raise Tickets</h3>
+        <p class="text-gray-600">
+          Submit complaints or requests in a few clicks.
+        </p>
+      </div>
+
+      <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 transition">
+        <h3 class="text-xl font-semibold mb-3">Track Status</h3>
+        <p class="text-gray-600">
+          Know whether your issue is open, in progress, or resolved.
+        </p>
+      </div>
+
+      <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 transition">
+        <h3 class="text-xl font-semibold mb-3">Admin Dashboard</h3>
+        <p class="text-gray-600">
+          Admins can manage and resolve tickets efficiently.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="px-12 py-16 bg-blue-600 text-white text-center">
+    <h2 class="text-3xl font-bold mb-8">How It Works</h2>
+    <div class="flex flex-col md:flex-row justify-center gap-6">
+      <div class="bg-white text-blue-600 px-6 py-3 rounded-full font-semibold">
+        1. Register
+      </div>
+      <div class="bg-white text-blue-600 px-6 py-3 rounded-full font-semibold">
+        2. Login
+      </div>
+      <div class="bg-white text-blue-600 px-6 py-3 rounded-full font-semibold">
+        3. Raise & Track Issues
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white text-center py-6 mt-10 text-gray-600">
+    © 2026 Campus Helpdesk | Developed by NIT
+  </footer>
+
+</body>
+</html>

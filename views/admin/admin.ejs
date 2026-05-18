@@ -1,0 +1,137 @@
+<%- include('../partials/head', { title: 'Admin Dashboard' }) %>
+</head>
+<body class="bg-slate-100">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md px-10 py-4 flex justify-between items-center">
+    <a href="/" class="flex items-center gap-3">
+      <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/24/National_Institute_of_Technology%2C_Srinagar_Logo.png/250px-National_Institute_of_Technology%2C_Srinagar_Logo.png" alt="NIT Srinagar" class="h-10 w-auto">
+      <span class="text-xl font-bold text-blue-600">
+        NIT Srinagar Helpdesk
+      </span>
+    </a>
+
+    <div class="flex items-center gap-6">
+      <span class="text-gray-700 font-medium">
+        Admin Panel
+      </span>
+      
+      <form action="/logout" method="POST" class="inline">
+        <button type="submit"
+         class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
+        Logout
+      </button>
+      </form>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="px-10 py-8">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">
+        Admin Dashboard
+      </h1>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+      <div class="bg-white p-6 rounded-xl shadow">
+        <p class="text-gray-500">Total Tickets</p>
+        <h2 class="text-3xl font-bold">12</h2>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow">
+        <p class="text-gray-500">Open</p>
+        <h2 class="text-3xl font-bold text-red-500">5</h2>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow">
+        <p class="text-gray-500">In Progress</p>
+        <h2 class="text-3xl font-bold text-yellow-500">4</h2>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow">
+        <p class="text-gray-500">Resolved</p>
+        <h2 class="text-3xl font-bold text-green-600">3</h2>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex gap-4 mb-6">
+      <select class="px-4 py-2 rounded-lg border">
+        <option>All</option>
+        <option>Open</option>
+        <option>In Progress</option>
+        <option>Resolved</option>
+      </select>
+
+      <input 
+        type="text" 
+        placeholder="Search by title or student..."
+        class="px-4 py-2 rounded-lg border w-64"
+      />
+    </div>
+
+    <!-- Ticket Table -->
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+      <table class="w-full text-left">
+        <thead class="bg-slate-100">
+          <tr>
+            <th class="px-6 py-3">ID</th>
+            <th class="px-6 py-3">Title</th>
+            <th class="px-6 py-3">Student</th>
+            <th class="px-6 py-3">Category</th>
+            <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="border-t hover:bg-slate-50">
+            <td class="px-6 py-3">#101</td>
+            <td class="px-6 py-3">WiFi not working</td>
+            <td class="px-6 py-3">Aamir Khan</td>
+            <td class="px-6 py-3">IT</td>
+            <td class="px-6 py-3">
+              <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm">
+                Open
+              </span>
+            </td>
+            <td class="px-6 py-3">
+              <select class="px-2 py-1 border rounded">
+                <option>Open</option>
+                <option>In Progress</option>
+                <option>Resolved</option>
+              </select>
+            </td>
+          </tr>
+
+          <tr class="border-t hover:bg-slate-50">
+            <td class="px-6 py-3">#102</td>
+            <td class="px-6 py-3">Hostel water issue</td>
+            <td class="px-6 py-3">Riya Sharma</td>
+            <td class="px-6 py-3">Hostel</td>
+            <td class="px-6 py-3">
+              <span class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-sm">
+                In Progress
+              </span>
+            </td>
+            <td class="px-6 py-3">
+              <select class="px-2 py-1 border rounded">
+                <option>Open</option>
+                <option selected>In Progress</option>
+                <option>Resolved</option>
+              </select>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</body>
+</html>

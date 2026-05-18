@@ -1,0 +1,45 @@
+<% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+
+  <div class="mb-4 rounded-lg border border-red-300 bg-red-50 p-4">
+
+    <div class="flex items-center gap-2 mb-2">
+      <svg xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5 text-red-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor">
+
+        <path stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 8v4m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67
+          1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46
+          0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+      </svg>
+
+      <h3 class="text-sm font-semibold text-red-700">
+        Please fix the following errors
+      </h3>
+    </div>
+
+    <ul class="space-y-1 text-sm text-red-600">
+
+      <% errors.forEach((error) => { %>
+
+        <li class="flex items-center gap-2">
+
+          <span class="text-red-500">•</span>
+
+          <span>
+            <%= error.msg || error %>
+          </span>
+
+        </li>
+
+      <% }) %>
+
+    </ul>
+
+  </div>
+
+<% } %>

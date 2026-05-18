@@ -1,0 +1,70 @@
+<%- include('../partials/head', { title: 'Register' }) %>
+  </head>
+  <body>
+    <div class="min-h-screen flex items-center justify-center bg-gray-100">
+      <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
+       
+        <h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
+        <form action="/register" method="POST" class="space-y-4">
+          <%- include('../partials/errors') %>
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+            <input type="text" id="username" name="username" required value="<%= oldInput.username %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            <label for="email" class="block text-sm font-medium text-gray-700 mt-4">Email</label>
+            <input type="email" id="email" name="email" required value="<%= oldInput.email %>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            <label for="password" class="block text-sm font-medium text-gray-700 mt-4">Password</label>
+            <input type="password" id="password" name="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mt-4">Confirm Password</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            <label for="role" class="block text-sm font-medium text-gray-700 mt-4">Role</label>
+            <select id="roleSelect" name="role" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="" <%= !oldInput.role ? 'selected' : '' %>>Select Role</option>
+              <option value="student" <%= oldInput.role === 'student' ? 'selected' : '' %>>Student</option>
+              <option value="admin" <%= oldInput.role === 'admin' ? 'selected' : '' %>>Admin</option>
+              </select>
+               <div id="departmentBox" class="<%= oldInput.role === 'admin' ? '' : 'hidden' %>">
+                            <label for="department" class="block text-sm font-medium text-gray-700 mt-4">Department</label>
+
+    <select 
+      id="department"
+      name="department"
+      class="w-full border px-3 py-2 rounded-lg mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+    >
+      <option value="" <%= !oldInput.department ? 'selected' : '' %>>Select Department</option>
+      <option value="IT" <%= oldInput.department === 'IT' ? 'selected' : '' %>>IT</option>
+      <option value="Technical" <%= oldInput.department === 'Technical' ? 'selected' : '' %>>Technical</option>
+      <option value="Academics" <%= oldInput.department === 'Academics' ? 'selected' : '' %>>Academics</option>
+      <option value="Administrative" <%= oldInput.department === 'Administrative' ? 'selected' : '' %>>Administrative</option>
+      <option value="Hostel" <%= oldInput.department === 'Hostel' ? 'selected' : '' %>>Hostel</option>
+      <option value="Library" <%= oldInput.department === 'Library' ? 'selected' : '' %>>Library</option>
+    </select>
+  </div>
+              <button type="submit" class="mt-6 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Register</button>
+             </div>
+             </form>
+
+                        <div class="mt-4 flex justify-center items-center gap-2 text-sm text-gray-600">
+  <span>Already have an account?</span>
+  <a href="/login" 
+     class="text-indigo-600 font-medium hover:underline">
+    Login
+  </a>
+</div>
+
+          </div>
+                </div>
+                <script>
+  const roleSelect = document.getElementById("roleSelect");
+  const departmentBox = document.getElementById("departmentBox");
+
+  roleSelect.addEventListener("change", function () {
+    if (this.value === "admin") {
+      departmentBox.classList.remove("hidden");
+    } else {
+      departmentBox.classList.add("hidden");
+    }
+  });
+</script>
+
+        </body>      
+</html>
