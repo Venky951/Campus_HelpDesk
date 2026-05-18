@@ -3,7 +3,7 @@ module.exports = (req, res, next) => {
     return res.redirect("/login");
   }
 
-  if (!req.session.user || req.session.user.role !== "admin") {
+  if (!req.session.user || req.session.user.role !== "student") {
     return res.redirect("/");
   }
 

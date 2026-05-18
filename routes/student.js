@@ -3,8 +3,9 @@ const studentdashboard = express.Router();
 
 const studentdetails = require("../controllers/student");
 const isAuth = require("../middleware/is-auth");
+const isstudent = require("../middleware/is-student");
 
-studentdashboard.get("/student", isAuth, studentdetails.getStudentDashboard);
+studentdashboard.get("/", isAuth, studentdetails.getStudentDashboard);
 
 studentdashboard.get("/raiseticket", isAuth, studentdetails.getRaiseTicket);
 studentdashboard.post("/raiseticket", isAuth, studentdetails.postRaiseTicket);

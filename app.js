@@ -28,6 +28,7 @@ const registerRoute = require("./routes/register");
 const indexRoute = require("./routes/index");
 const studentRoute = require("./routes/student");
 const adminRoute = require("./routes/admin");
+const isAuth = require("./middleware/is-auth");
 const pagenotfound = require("./controllers/error");
 
 const { default: mongoose } = require("mongoose");
@@ -63,7 +64,12 @@ app.use(express.static(path.join(helpdeskPath, "public")));
 app.use(loginRoute);
 app.use(registerRoute);
 app.use(indexRoute);
-app.use(studentRoute);
+app.post("/logout", isAuth, (req, res, next) => {
+  req.session.destroy(() => {
+    res.redirect("/");
+  });
+});
+app.use("/student", studentRoute);
 app.use(adminRoute);
 app.use(pagenotfound.pageNotFound);
 
