@@ -16,7 +16,7 @@
         Welcome, <%= user.username %>
       </span>
       
-      <form action="/admin/logout" method="POST" class="inline">
+      <form action="/admin-logout" method="POST" class="inline">
         <button type="submit"
          class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
         Logout
@@ -39,40 +39,70 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
       <div class="bg-white p-6 rounded-xl shadow">
         <p class="text-gray-500">Total Tickets</p>
-        <h2 class="text-3xl font-bold">12</h2>
+        <h2 class="text-3xl font-bold"><%= totalTickets %></h2>
       </div>
 
       <div class="bg-white p-6 rounded-xl shadow">
         <p class="text-gray-500">Open</p>
-        <h2 class="text-3xl font-bold text-red-500">5</h2>
+        <h2 class="text-3xl font-bold text-red-500"><%= openTickets %></h2>
       </div>
 
       <div class="bg-white p-6 rounded-xl shadow">
         <p class="text-gray-500">In Progress</p>
-        <h2 class="text-3xl font-bold text-yellow-500">4</h2>
+        <h2 class="text-3xl font-bold text-yellow-500"><%= inProgressTickets %></h2>
       </div>
 
       <div class="bg-white p-6 rounded-xl shadow">
         <p class="text-gray-500">Resolved</p>
-        <h2 class="text-3xl font-bold text-green-600">3</h2>
+        <h2 class="text-3xl font-bold text-green-600"><%= resolvedTickets %></h2>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="flex gap-4 mb-6">
-      <select class="px-4 py-2 rounded-lg border">
-        <option>All</option>
-        <option>Open</option>
-        <option>In Progress</option>
-        <option>Resolved</option>
-      </select>
+    <form action="/admin" method="GET" class="flex gap-4 mb-6">
 
-      <input 
-        type="text" 
-        placeholder="Search by title or student..."
-        class="px-4 py-2 rounded-lg border w-64"
-      />
-    </div>
+  <select
+    name="status"
+    onchange="this.form.submit()"
+    class="px-4 py-2 rounded-lg border"
+  >
+
+    <option value="All"
+      <%= statusFilter === "All" ? "selected" : "" %>>
+      All
+    </option>
+
+    <option value="Open"
+      <%= statusFilter === "Open" ? "selected" : "" %>>
+      Open
+    </option>
+
+    <option value="In Progress"
+      <%= statusFilter === "In Progress" ? "selected" : "" %>>
+      In Progress
+    </option>
+
+    <option value="Resolved"
+      <%= statusFilter === "Resolved" ? "selected" : "" %>>
+      Resolved
+    </option>
+
+  </select>
+  <input 
+  type="text" 
+  name="search"
+  value="<%= search %>"
+  placeholder="Search by title or student..."
+  class="px-4 py-2 rounded-lg border w-64"
+/>
+
+<button
+  type="submit"
+  class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+>
+  Search
+</button>
+</form>
 
     <!-- Ticket Table -->
     <div class="bg-white rounded-xl shadow overflow-hidden">
@@ -87,47 +117,89 @@
             <th class="px-6 py-3">Action</th>
           </tr>
         </thead>
-        <tbody>
+       <tbody>
 
-          <tr class="border-t hover:bg-slate-50">
-            <td class="px-6 py-3">#101</td>
-            <td class="px-6 py-3">WiFi not working</td>
-            <td class="px-6 py-3">Aamir Khan</td>
-            <td class="px-6 py-3">IT</td>
-            <td class="px-6 py-3">
-              <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm">
-                Open
-              </span>
-            </td>
-            <td class="px-6 py-3">
-              <select class="px-2 py-1 border rounded">
-                <option>Open</option>
-                <option>In Progress</option>
-                <option>Resolved</option>
-              </select>
-            </td>
-          </tr>
+  <% tickets.forEach(ticket => { %>
 
-          <tr class="border-t hover:bg-slate-50">
-            <td class="px-6 py-3">#102</td>
-            <td class="px-6 py-3">Hostel water issue</td>
-            <td class="px-6 py-3">Riya Sharma</td>
-            <td class="px-6 py-3">Hostel</td>
-            <td class="px-6 py-3">
-              <span class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-sm">
-                In Progress
-              </span>
-            </td>
-            <td class="px-6 py-3">
-              <select class="px-2 py-1 border rounded">
-                <option>Open</option>
-                <option selected>In Progress</option>
-                <option>Resolved</option>
-              </select>
-            </td>
-          </tr>
+    <tr class="border-t hover:bg-slate-50">
 
-        </tbody>
+      <td class="px-6 py-3">
+        <%= ticket._id %>
+      </td>
+
+      <td class="px-6 py-3">
+        <%= ticket.title %>
+      </td>
+
+      <td class="px-6 py-3">
+        <%= ticket.student.username %>
+      </td>
+
+      <td class="px-6 py-3">
+        <%= ticket.category %>
+      </td>
+
+      <td class="px-6 py-3">
+
+        <span class="
+          px-3 py-1 rounded-full text-sm
+
+          <%= ticket.status === 'Open'
+            ? 'bg-red-100 text-red-600'
+            : ticket.status === 'In Progress'
+            ? 'bg-yellow-100 text-yellow-600'
+            : 'bg-green-100 text-green-600'
+          %>
+        ">
+
+          <%= ticket.status %>
+
+        </span>
+
+      </td>
+
+      <td class="px-6 py-3">
+
+        <form
+          action="/update-status/<%= ticket._id %>"
+          method="POST"
+        >
+
+          <select
+            name="status"
+            onchange="this.form.submit()"
+            class="px-2 py-1 border rounded"
+          >
+
+            <option
+              value="Open"
+              <%= ticket.status === "Open" ? "selected" : "" %>>
+              Open
+            </option>
+
+            <option
+              value="In Progress"
+              <%= ticket.status === "In Progress" ? "selected" : "" %>>
+              In Progress
+            </option>
+
+            <option
+              value="Resolved"
+              <%= ticket.status === "Resolved" ? "selected" : "" %>>
+              Resolved
+            </option>
+
+          </select>
+
+        </form>
+
+      </td>
+
+    </tr>
+
+  <% }) %>
+
+</tbody>
       </table>
     </div>
 

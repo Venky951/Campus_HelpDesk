@@ -6,8 +6,8 @@ const raiseTicketSchema = new mongoose.Schema({
   description: { type: String, required: true },
   status: {
     type: String,
-    enum: ["open", "in progress", "closed"],
-    default: "open",
+    enum: ["Open", "In Progress", "Resolved"],
+    default: "Open",
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

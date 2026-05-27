@@ -6,5 +6,6 @@ const isAdmin = require("../middleware/is-admin");
 
 admindashboard.get("/admin", isAdmin, adminDetails.getadmin);
 admindashboard.post("/admin-logout", isAuth, adminDetails.postLogout);
+admindashboard.post("/update-status/:id", isAdmin, adminDetails.updateStatus);
 
 module.exports = admindashboard;

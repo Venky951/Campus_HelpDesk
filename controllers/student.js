@@ -15,11 +15,11 @@ exports.getStudentDashboard = async (req, res, next) => {
     const totalTickets = tickets.length;
 
     const openTickets = tickets.filter(
-      (ticket) => ticket.status === "open",
+      (ticket) => ticket.status === "Open",
     ).length;
 
     const resolvedTickets = tickets.filter(
-      (ticket) => ticket.status === "closed",
+      (ticket) => ticket.status === "Resolved",
     ).length;
 
     res.render("student/student", {
@@ -57,7 +57,7 @@ exports.postRaiseTicket = async (req, res, next) => {
       title: title,
       category: category,
       description: description,
-      status: "open",
+      status: "Open",
       student: req.session.user._id,
     });
 
@@ -71,7 +71,11 @@ exports.postRaiseTicket = async (req, res, next) => {
 };
 
 exports.postLogout = (req, res, next) => {
-  req.session.destroy(() => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Session destruction error:", err);
+      return res.redirect("/");
+    }
     res.redirect("/");
   });
 };

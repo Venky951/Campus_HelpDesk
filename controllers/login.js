@@ -34,6 +34,7 @@ exports.postLogin = async (req, res, next) => {
             username: user.username,
             email: user.email,
             role: user.role,
+            department: user.department,
           };
           return req.session.save((err) => {
             if (err) {
