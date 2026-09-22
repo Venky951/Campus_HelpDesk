@@ -15,15 +15,17 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
-    "body-parser": "^2.2.2",
     "connect-mongodb-session": "^5.0.0",
+    "csrf-sync": "^4.2.1",
+    "dotenv": "^17.4.2",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
     "express-session": "^1.19.0",
     "express-validator": "^7.3.2",
-    "mongoose": "^9.6.2"
+    "helmet": "^8.3.0",
+    "mongoose": "^9.10.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",

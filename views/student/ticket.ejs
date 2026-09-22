@@ -1,0 +1,7 @@
+<%- include('../partials/head', { title: 'Ticket Details' }) %>
+</head>
+<%- include('../partials/ticket-detail', {
+  navPartial: 'raiseticketnav',
+  backUrl,
+  commentAction: `/student/ticket/${ticket._id}/comment`,
+}) %>

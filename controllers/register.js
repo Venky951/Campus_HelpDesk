@@ -1,5 +1,5 @@
 const { check, validationResult } = require("express-validator");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const registerdetails = require("../models/register");
 
 exports.getRegister = (req, res, next) => {
@@ -11,18 +11,19 @@ exports.getRegister = (req, res, next) => {
     oldInput: {
       username: "",
       email: "",
-      role: "",
-      department: "",
     },
   });
 };
 
 exports.postRegister = [
   check("username")
+    .isString()
+    .withMessage("Username must be text")
+    .trim()
     .notEmpty()
     .withMessage("Username is required")
-    .isLength({ min: 3 })
-    .withMessage("Username must be at least 3 characters long")
+    .isLength({ min: 3, max: 50 })
+    .withMessage("Username must be between 3 and 50 characters")
     .custom(async (username) => {
       const existingUser = await registerdetails.findOne({
         username: username,
@@ -34,11 +35,15 @@ exports.postRegister = [
     }),
 
   check("email")
+    .isString()
     .trim()
     .notEmpty()
     .withMessage("Email is required")
     .isEmail()
     .withMessage("Please enter a valid email address")
+    .normalizeEmail()
+    .isLength({ max: 254 })
+    .withMessage("Email is too long")
     .custom(async (email) => {
       const existingUser = await registerdetails.findOne({ email: email });
       if (existingUser) {
@@ -48,10 +53,11 @@ exports.postRegister = [
     }),
 
   check("password")
+    .isString()
     .notEmpty()
     .withMessage("Password is required")
-    .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long")
+    .isLength({ min: 8, max: 128 })
+    .withMessage("Password must be between 8 and 128 characters")
     .matches(/[A-Z]/)
     .withMessage("Password must contain at least one uppercase letter")
     .matches(/[a-z]/)
@@ -59,10 +65,10 @@ exports.postRegister = [
     .matches(/[0-9]/)
     .withMessage("Password must contain at least one number")
     .matches(/[@$!%*?&]/)
-    .withMessage("Password must contain at least one special character")
-    .trim(),
+    .withMessage("Password must contain at least one special character"),
 
   check("confirmPassword")
+    .isString()
     .notEmpty()
     .withMessage("Please confirm your password")
     .custom((confirmPassword, { req }) => {
@@ -71,40 +77,11 @@ exports.postRegister = [
       }
       return true;
     })
-    .trim(),
-
-  check("role")
-    .notEmpty()
-    .withMessage("Role is required")
-    .isIn(["student", "admin"])
-    .withMessage("Role must be either 'student' or 'admin'"),
-
-  check("department").custom((value, { req }) => {
-    if (req.body.role === "admin") {
-      if (!value) {
-        throw new Error("Department is required");
-      }
-
-      const validDepartments = [
-        "IT",
-        "Technical",
-        "Academics",
-        "Administrative",
-        "Hostel",
-        "Library",
-      ];
-
-      if (!validDepartments.includes(value)) {
-        throw new Error("Invalid department selected");
-      }
-    }
-
-    return true;
-  }),
+    .isLength({ max: 128 })
+    .withMessage("Confirmation password is too long"),
 
   async (req, res, next) => {
-    const { username, email, password, confirmPassword, role, department } =
-      req.body;
+    const { username, email, password, confirmPassword } = req.body;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).render("auth/register", {
@@ -113,9 +90,6 @@ exports.postRegister = [
         oldInput: {
           username,
           email,
-
-          role,
-          department,
         },
       });
     }
@@ -126,25 +100,21 @@ exports.postRegister = [
         username,
         email,
         password: hashedPassword,
-        role,
-        department: req.body.department || undefined,
+        role: "student",
       });
       await user.save();
       res.redirect("/login");
     } catch (err) {
-      console.error("Error during registration:", err);
-      res.status(500).render("auth/register", {
-        title: "Register",
-        isLoggedIn: false,
-        errors: [{ msg: err.message }],
-        oldInput: {
-          username,
-          email,
+      if (err.code === 11000) {
+        return res.status(409).render("auth/register", {
+          title: "Register",
+          isLoggedIn: false,
+          errors: [{ msg: "Username or email is already in use" }],
+          oldInput: { username, email },
+        });
+      }
 
-          role,
-          department,
-        },
-      });
+      return next(err);
     }
   },
 ];

@@ -1,31 +1,53 @@
+require("dotenv").config();
+
 //core Module
 const path = require("path");
 
 //External Module
 const express = require("express");
 const app = express();
+const helmet = require("helmet");
 const session = require("express-session");
-// Disable MongoDB store temporarily - using memory store instead
-// const MongoDBStore = require("connect-mongodb-session")(session);
-const DB_URI =
-  "mongodb+srv://Campus-helpdesk:malothvenky@campus-helpdesk.1aoq1vq.mongodb.net/campus-helpdesk?retryWrites=true&w=majority&tls=true&tlsAllowInvalidCertificates=true";
+const MongoDBStore = require("connect-mongodb-session")(session);
+const { csrfSync } = require("csrf-sync");
 
-// Disable store for now
-// const store = new MongoDBStore({
-//   uri: DB_URI,
-//   collection: "sessions",
-//   mongoOptions: {
-//     tls: true,
-//     tlsAllowInvalidCertificates: true,
-//   },
-// });
+const { csrfSynchronisedProtection, generateToken } = csrfSync({
+  getTokenFromRequest: (req) => req.body?._csrf,
+});
 
-// store.on("error", (error) => {
-//   console.error("Session store error:", error);
-// });
+const store = new MongoDBStore({
+  uri: process.env.MONGO_URI,
+  collection: "sessions",
+});
+
+store.on("error", (error) => {
+  console.error("Session store error:", error.name, error.message);
+});
 
 app.set("view engine", "ejs");
 app.set("views", "views");
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        scriptSrcAttr: ["'none'"],
+        styleSrc: ["'self'"],
+        imgSrc: ["'self'", "https://upload.wikimedia.org"],
+        fontSrc: ["'self'"],
+        connectSrc: ["'self'"],
+        formAction: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    crossOriginResourcePolicy: false,
+    strictTransportSecurity:
+      process.env.NODE_ENV === "production" ? undefined : false,
+  }),
+);
 
 //Local Module
 const helpdeskPath = require("./utils/path");
@@ -39,30 +61,27 @@ const pagenotfound = require("./controllers/error");
 
 const { default: mongoose } = require("mongoose");
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "10kb" }));
 
-// Use in-memory session store temporarily if MongoDB fails
-const sessionConfig = {
-  secret: "helpdesk-secret-key",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
-  },
-};
-
-// MongoDB store disabled due to connection issues
-// Using memory store for now
-// try {
-//   sessionConfig.store = store;
-// } catch (err) {
-//   console.warn(
-//     "MongoDB session store failed, using memory store:",
-//     err.message,
-//   );
-// }
-
-app.use(session(sessionConfig));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: store,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  }),
+);
+app.use((req, res, next) => {
+  res.locals.csrfToken = generateToken(req);
+  next();
+});
+app.use(csrfSynchronisedProtection);
 app.use((req, res, next) => {
   if (req.session) {
     req.isLoggedIn = req.session.isLoggedIn;
@@ -80,8 +99,7 @@ app.use(indexRoute);
 app.post("/logout", isAuth, (req, res, next) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error("Session destruction error:", err);
-      return res.redirect("/");
+      return next(err);
     }
     res.redirect("/");
   });
@@ -89,10 +107,10 @@ app.post("/logout", isAuth, (req, res, next) => {
 app.use("/student", studentRoute);
 app.use(adminRoute);
 app.use(pagenotfound.pageNotFound);
+app.use(pagenotfound.errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
-// Start server even if MongoDB connection fails
 const startServer = () => {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
@@ -100,16 +118,12 @@ const startServer = () => {
 };
 
 mongoose
-  .connect(DB_URI, {
-    tls: true,
-    tlsAllowInvalidCertificates: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("Connected to MongoDB successfully");
+    console.log("MongoDB connected");
     startServer();
   })
   .catch((err) => {
-    console.error("Failed to connect to MongoDB:", err.message);
-    console.warn("Continuing without database persistence...");
-    startServer();
+    console.error("MongoDB connection failed:", err.name, err.message);
+    process.exit(1);
   });

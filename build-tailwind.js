@@ -9,10 +9,7 @@ const outputPath = "./public/styles.css";
 async function build() {
   try {
     const input = fs.readFileSync(inputPath, "utf8");
-    const result = await postcss([
-      tailwindcss(require("./tailwind.config.js")),
-      autoprefixer,
-    ]).process(input, {
+    const result = await postcss([tailwindcss(), autoprefixer]).process(input, {
       from: inputPath,
       to: outputPath,
       map: false,

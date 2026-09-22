@@ -5,16 +5,16 @@
   <!-- Navbar -->
 <%- include('../partials/nav') %> 
   <!-- Main Container -->
-  <div class="px-10 py-8">
+  <div class="px-4 sm:px-10 py-6 sm:py-8">
 
     <!-- Top Actions -->
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold text-gray-800">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">
         Student Dashboard
       </h1>
 
       <a href="/student/raiseticket"
-         class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+         class="w-full sm:w-auto text-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
         + Raise New Ticket
       </a>
     </div>
@@ -43,11 +43,13 @@
         <h2 class="text-xl font-semibold">My Tickets</h2>
       </div>
 
-      <table class="w-full text-left">
+      <div class="overflow-x-auto">
+      <table class="w-full min-w-[640px] text-left">
         <thead class="bg-slate-100">
           <tr>
             <th class="px-6 py-3">ID</th>
             <th class="px-6 py-3">Title</th>
+            <th class="px-6 py-3">Priority</th>
             <th class="px-6 py-3">Category</th>
             <th class="px-6 py-3">Status</th>
             <th class="px-6 py-3">Created</th>
@@ -65,8 +67,31 @@
           #<%= index + 1 %>
         </td>
 
+        <td class="px-6 py-3 max-w-xs break-words">
+          <a href="/student/ticket/<%= ticket._id %>" class="text-blue-600 hover:underline break-words">
+            <%= ticket.title %>
+          </a>
+        </td>
+
         <td class="px-6 py-3">
-          <%= ticket.title %>
+          <% const priority = ticket.priority || "Medium"; %>
+          <% if (priority === "Urgent") { %>
+            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
+              Urgent
+            </span>
+          <% } else if (priority === "High") { %>
+            <span class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-sm">
+              High
+            </span>
+          <% } else if (priority === "Low") { %>
+            <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">
+              Low
+            </span>
+          <% } else { %>
+            <span class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-sm">
+              Medium
+            </span>
+          <% } %>
         </td>
 
         <td class="px-6 py-3">
@@ -108,7 +133,7 @@
   <% } else { %>
 
     <tr>
-      <td colspan="5" class="text-center py-10 text-gray-500">
+      <td colspan="6" class="text-center py-10 text-gray-500">
         No tickets raised yet.
       </td>
     </tr>
@@ -117,6 +142,7 @@
 
 </tbody>
       </table>
+      </div>
     </div>
 
     <!-- Empty State (use when no tickets) -->

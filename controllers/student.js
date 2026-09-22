@@ -1,6 +1,6 @@
-const path = require("path");
-
 const Ticket = require("../models/raisetickect");
+const { actions, recordTicketHistory } = require("../utils/ticket-history");
+const { validationResult } = require("express-validator");
 
 exports.getStudentDashboard = async (req, res, next) => {
   try {
@@ -33,7 +33,7 @@ exports.getStudentDashboard = async (req, res, next) => {
       resolvedTickets: resolvedTickets,
     });
   } catch (err) {
-    console.log(err);
+    next(err);
   }
 };
 
@@ -42,15 +42,21 @@ exports.getRaiseTicket = (req, res, next) => {
     title: "Raise Ticket",
     isLoggedIn: req.isLoggedIn,
     user: req.session.user,
+    errors: [],
   });
 };
 exports.postRaiseTicket = async (req, res, next) => {
   try {
-    const { title, category, description } = req.body;
+    const { title, category, description, priority } = req.body;
+    const errors = validationResult(req);
 
-    // Validate BEFORE saving
-    if (!title || !category || !description) {
-      return res.redirect("/student/raiseticket");
+    if (!errors.isEmpty()) {
+      return res.status(422).render("student/raiseticket", {
+        title: "Raise Ticket",
+        isLoggedIn: req.isLoggedIn,
+        user: req.session.user,
+        errors: errors.array(),
+      });
     }
 
     const ticket = new Ticket({
@@ -58,23 +64,34 @@ exports.postRaiseTicket = async (req, res, next) => {
       category: category,
       description: description,
       status: "Open",
+      priority: priority,
       student: req.session.user._id,
     });
 
     await ticket.save();
 
+    try {
+      await recordTicketHistory({
+        ticket: ticket._id,
+        actor: req.authenticatedUser._id,
+        actorRole: "student",
+        action: actions.CREATED,
+      });
+    } catch (historyError) {
+      await Ticket.deleteOne({ _id: ticket._id });
+      throw historyError;
+    }
+
     res.redirect("/student");
   } catch (err) {
-    console.log(err);
-    res.redirect("/student/raiseticket");
+    next(err);
   }
 };
 
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error("Session destruction error:", err);
-      return res.redirect("/");
+      return next(err);
     }
     res.redirect("/");
   });

@@ -1,10 +1,11 @@
 <%- include('../partials/head', { title: 'Login' }) %>
   </head>
   <body>
-    <div class="min-h-screen flex items-center justify-center bg-gray-100">
-      <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center">Login to Your Account</h2>
+    <div class="min-h-screen flex items-center justify-center px-4 py-6 bg-gray-100">
+      <div class="bg-white p-6 sm:p-8 rounded shadow-md w-full max-w-md">
+        <h2 class="text-xl sm:text-2xl font-bold mb-6 text-center">Login to Your Account</h2>
         <form action="/login" method="POST" class="space-y-4">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <%- include('../partials/errors') %>
 
           <div>

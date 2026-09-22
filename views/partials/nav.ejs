@@ -1,4 +1,4 @@
-<nav class="bg-white shadow-md px-10 py-4 flex justify-between items-center">
+<nav class="bg-white shadow-md px-4 sm:px-10 py-4 flex flex-wrap gap-3 justify-between items-center">
     <a href="/" class="flex items-center gap-3">
       <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/24/National_Institute_of_Technology%2C_Srinagar_Logo.png/250px-National_Institute_of_Technology%2C_Srinagar_Logo.png" alt="NIT Srinagar" class="h-10 w-auto">
       <span class="text-xl font-bold text-blue-600">
@@ -6,11 +6,12 @@
       </span>
     </a>
 
-    <div class="flex items-center gap-6">
+    <div class="flex flex-wrap items-center gap-3 sm:gap-6">
       <span class="text-gray-700 font-medium">
         Welcome, <%= user.username %>
       </span>
       <form action="/logout" method="POST" class="inline">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button type="submit"
          class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
         Logout

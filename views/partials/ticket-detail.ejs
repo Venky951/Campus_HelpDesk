@@ -1,0 +1,97 @@
+<body class="bg-slate-100">
+  <%- include(navPartial) %>
+
+  <main class="px-4 sm:px-10 py-6 sm:py-8">
+    <div class="max-w-4xl mx-auto space-y-6">
+      <a href="<%= backUrl %>" class="text-blue-600 font-medium hover:underline">Back to dashboard</a>
+
+      <section class="bg-white rounded-xl shadow p-5 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:justify-between gap-4 mb-6">
+          <div>
+            <p class="text-sm text-gray-500">Ticket details</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 break-words"><%= ticket.title %></h1>
+          </div>
+          <div class="text-sm text-gray-500 sm:text-right">
+            Created <%= new Date(ticket.createdAt).toLocaleString() %>
+          </div>
+        </div>
+
+        <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div>
+            <dt class="text-sm text-gray-500">Category</dt>
+            <dd class="font-medium break-words"><%= ticket.category %></dd>
+          </div>
+          <div>
+            <dt class="text-sm text-gray-500">Status</dt>
+            <dd class="font-medium"><%= ticket.status %></dd>
+          </div>
+          <div>
+            <dt class="text-sm text-gray-500">Priority</dt>
+            <dd class="font-medium"><%= ticket.priority || "Medium" %></dd>
+          </div>
+        </dl>
+
+        <div class="border-t pt-5">
+          <h2 class="text-lg font-semibold mb-2">Description</h2>
+          <p class="text-gray-700 whitespace-pre-wrap break-words"><%= ticket.description %></p>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-xl shadow p-5 sm:p-8">
+        <h2 class="text-xl font-semibold mb-5">Conversation</h2>
+
+        <% if (comments.length === 0) { %>
+          <p class="text-gray-500">No replies yet.</p>
+        <% } else { %>
+          <div class="space-y-4">
+            <% comments.forEach((comment) => { %>
+              <article class="border rounded-lg p-4 <%= comment.authorRole === 'admin' ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-200' %>">
+                <div class="flex flex-col sm:flex-row sm:justify-between gap-1 mb-2">
+                  <strong class="text-gray-800"><%= comment.authorRole === "admin" ? "Admin" : "Student" %> · <%= comment.author?.username || "User" %></strong>
+                  <time class="text-sm text-gray-500"><%= new Date(comment.createdAt).toLocaleString() %></time>
+                </div>
+                <p class="text-gray-700 whitespace-pre-wrap break-words"><%= comment.message %></p>
+              </article>
+            <% }) %>
+          </div>
+        <% } %>
+      </section>
+
+      <section class="bg-white rounded-xl shadow p-5 sm:p-8">
+        <h2 class="text-xl font-semibold mb-5">Ticket History</h2>
+
+        <% if (history.length === 0) { %>
+          <p class="text-gray-500">No history available for this ticket.</p>
+        <% } else { %>
+          <ol class="space-y-4 border-l-2 border-blue-100 pl-5">
+            <% history.forEach((event) => { %>
+              <li class="relative">
+                <span class="absolute -left-[1.65rem] top-1 h-3 w-3 rounded-full bg-blue-600"></span>
+                <time class="text-sm text-gray-500"><%= new Date(event.createdAt).toLocaleString() %></time>
+                <p class="font-medium text-gray-800">
+                  <%= event.actorRole === "admin" ? "Admin" : "Student" %>
+                  <%= event.action === "CREATED" ? "created this ticket" : event.action === "COMMENT_ADDED" ? "added a comment" : event.action === "STATUS_CHANGED" ? "changed status" : "changed priority" %>
+                </p>
+                <% if (event.details?.from && event.details?.to) { %>
+                  <p class="text-gray-600 break-words"><%= event.details.from %> &rarr; <%= event.details.to %></p>
+                <% } %>
+              </li>
+            <% }) %>
+          </ol>
+        <% } %>
+      </section>
+
+      <section class="bg-white rounded-xl shadow p-5 sm:p-8">
+        <h2 class="text-xl font-semibold mb-4">Reply</h2>
+        <%- include('../partials/errors') %>
+        <form action="<%= commentAction %>" method="POST" class="space-y-4">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+          <textarea id="message" name="message" rows="5" maxlength="2000" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Write a reply..."></textarea>
+          <button type="submit" class="w-full sm:w-auto bg-indigo-600 text-white py-2 px-5 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Send Reply</button>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

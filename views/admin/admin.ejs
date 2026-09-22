@@ -3,7 +3,7 @@
 <body class="bg-slate-100">
 
   <!-- Navbar -->
-  <nav class="bg-white shadow-md px-10 py-4 flex justify-between items-center">
+  <nav class="bg-white shadow-md px-4 sm:px-10 py-4 flex flex-wrap gap-3 justify-between items-center">
     <a href="/" class="flex items-center gap-3">
       <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/24/National_Institute_of_Technology%2C_Srinagar_Logo.png/250px-National_Institute_of_Technology%2C_Srinagar_Logo.png" alt="NIT Srinagar" class="h-10 w-auto">
       <span class="text-xl font-bold text-blue-600">
@@ -11,12 +11,13 @@
       </span>
     </a>
 
-    <div class="flex items-center gap-6">
+    <div class="flex flex-wrap items-center gap-3 sm:gap-6">
       <span class="text-gray-700 font-medium">
         Welcome, <%= user.username %>
       </span>
       
       <form action="/admin-logout" method="POST" class="inline">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button type="submit"
          class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
         Logout
@@ -26,11 +27,11 @@
   </nav>
 
   <!-- Main Container -->
-  <div class="px-10 py-8">
+  <div class="px-4 sm:px-10 py-6 sm:py-8">
 
     <!-- Header -->
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold text-gray-800">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">
         Admin Dashboard
       </h1>
     </div>
@@ -59,7 +60,7 @@
     </div>
 
     <!-- Filters -->
-    <form action="/admin" method="GET" class="flex gap-4 mb-6">
+    <form action="/admin" method="GET" class="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
 
   <select
     name="status"
@@ -88,12 +89,25 @@
     </option>
 
   </select>
+  <select
+    name="priority"
+    onchange="this.form.submit()"
+    class="px-4 py-2 rounded-lg border"
+  >
+    <option value="All" <%= priorityFilter === "All" ? "selected" : "" %>>
+      All priorities
+    </option>
+    <option value="Low" <%= priorityFilter === "Low" ? "selected" : "" %>>Low</option>
+    <option value="Medium" <%= priorityFilter === "Medium" ? "selected" : "" %>>Medium</option>
+    <option value="High" <%= priorityFilter === "High" ? "selected" : "" %>>High</option>
+    <option value="Urgent" <%= priorityFilter === "Urgent" ? "selected" : "" %>>Urgent</option>
+  </select>
   <input 
   type="text" 
   name="search"
   value="<%= search %>"
   placeholder="Search by title or student..."
-  class="px-4 py-2 rounded-lg border w-64"
+  class="px-4 py-2 rounded-lg border w-full sm:w-64"
 />
 
 <button
@@ -106,29 +120,41 @@
 
     <!-- Ticket Table -->
     <div class="bg-white rounded-xl shadow overflow-hidden">
-      <table class="w-full text-left">
+      <div class="overflow-x-auto">
+      <table class="w-full min-w-[760px] text-left">
         <thead class="bg-slate-100">
           <tr>
             <th class="px-6 py-3">ID</th>
             <th class="px-6 py-3">Title</th>
             <th class="px-6 py-3">Student</th>
             <th class="px-6 py-3">Category</th>
+            <th class="px-6 py-3">Priority</th>
             <th class="px-6 py-3">Status</th>
             <th class="px-6 py-3">Action</th>
           </tr>
         </thead>
        <tbody>
 
-  <% tickets.forEach(ticket => { %>
+    <% if (tickets.length === 0) { %>
+      <tr>
+        <td colspan="7" class="text-center py-10 text-gray-500">
+          No tickets found.
+        </td>
+      </tr>
+    <% } %>
+
+    <% tickets.forEach(ticket => { %>
 
     <tr class="border-t hover:bg-slate-50">
 
-      <td class="px-6 py-3">
+      <td class="px-6 py-3 max-w-xs break-all">
         <%= ticket._id %>
       </td>
 
-      <td class="px-6 py-3">
-        <%= ticket.title %>
+      <td class="px-6 py-3 max-w-xs break-words">
+        <a href="/admin/ticket/<%= ticket._id %>" class="text-blue-600 hover:underline break-words">
+          <%= ticket.title %>
+        </a>
       </td>
 
       <td class="px-6 py-3">
@@ -137,6 +163,27 @@
 
       <td class="px-6 py-3">
         <%= ticket.category %>
+      </td>
+
+      <td class="px-6 py-3">
+        <% const priority = ticket.priority || "Medium"; %>
+        <% if (priority === "Urgent") { %>
+          <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
+            Urgent
+          </span>
+        <% } else if (priority === "High") { %>
+          <span class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-sm">
+            High
+          </span>
+        <% } else if (priority === "Low") { %>
+          <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">
+            Low
+          </span>
+        <% } else { %>
+          <span class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-sm">
+            Medium
+          </span>
+        <% } %>
       </td>
 
       <td class="px-6 py-3">
@@ -161,9 +208,28 @@
       <td class="px-6 py-3">
 
         <form
+          action="/update-priority/<%= ticket._id %>"
+          method="POST"
+        >
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <select
+            name="priority"
+            onchange="this.form.submit()"
+            class="px-2 py-1 border rounded"
+          >
+            <% const selectedPriority = ticket.priority || "Medium"; %>
+            <option value="Low" <%= selectedPriority === "Low" ? "selected" : "" %>>Low</option>
+            <option value="Medium" <%= selectedPriority === "Medium" ? "selected" : "" %>>Medium</option>
+            <option value="High" <%= selectedPriority === "High" ? "selected" : "" %>>High</option>
+            <option value="Urgent" <%= selectedPriority === "Urgent" ? "selected" : "" %>>Urgent</option>
+          </select>
+        </form>
+
+        <form
           action="/update-status/<%= ticket._id %>"
           method="POST"
         >
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
           <select
             name="status"
@@ -201,7 +267,47 @@
 
 </tbody>
       </table>
+      </div>
     </div>
+
+    <% const paginationQuery = new URLSearchParams({
+      status: statusFilter,
+      priority: priorityFilter,
+      search,
+    }); %>
+    <% const paginationStart = Math.max(1, page - 2); %>
+    <% const paginationEnd = Math.min(totalPages, page + 2); %>
+    <nav class="flex flex-wrap items-center justify-center gap-2 mt-6" aria-label="Ticket pages">
+      <% if (page > 1) { %>
+        <a href="/admin?<%= paginationQuery.toString() %>&page=<%= page - 1 %>" class="px-3 py-2 rounded border bg-white text-blue-600 hover:bg-blue-50">Previous</a>
+      <% } else { %>
+        <span class="px-3 py-2 rounded border text-gray-400 bg-gray-100">Previous</span>
+      <% } %>
+
+      <% if (paginationStart > 1) { %>
+        <a href="/admin?<%= paginationQuery.toString() %>&page=1" class="px-3 py-2 rounded border bg-white text-blue-600 hover:bg-blue-50">1</a>
+        <% if (paginationStart > 2) { %><span class="px-1 text-gray-500">...</span><% } %>
+      <% } %>
+
+      <% for (let pageNumber = paginationStart; pageNumber <= paginationEnd; pageNumber++) { %>
+        <% if (pageNumber === page) { %>
+          <span aria-current="page" class="px-3 py-2 rounded border border-blue-600 bg-blue-600 text-white"><%= pageNumber %></span>
+        <% } else { %>
+          <a href="/admin?<%= paginationQuery.toString() %>&page=<%= pageNumber %>" class="px-3 py-2 rounded border bg-white text-blue-600 hover:bg-blue-50"><%= pageNumber %></a>
+        <% } %>
+      <% } %>
+
+      <% if (paginationEnd < totalPages) { %>
+        <% if (paginationEnd < totalPages - 1) { %><span class="px-1 text-gray-500">...</span><% } %>
+        <a href="/admin?<%= paginationQuery.toString() %>&page=<%= totalPages %>" class="px-3 py-2 rounded border bg-white text-blue-600 hover:bg-blue-50"><%= totalPages %></a>
+      <% } %>
+
+      <% if (page < totalPages) { %>
+        <a href="/admin?<%= paginationQuery.toString() %>&page=<%= page + 1 %>" class="px-3 py-2 rounded border bg-white text-blue-600 hover:bg-blue-50">Next</a>
+      <% } else { %>
+        <span class="px-3 py-2 rounded border text-gray-400 bg-gray-100">Next</span>
+      <% } %>
+    </nav>
 
   </div>
 
