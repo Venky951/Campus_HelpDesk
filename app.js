@@ -58,6 +58,7 @@ const studentRoute = require("./routes/student");
 const adminRoute = require("./routes/admin");
 const isAuth = require("./middleware/is-auth");
 const pagenotfound = require("./controllers/error");
+const attachmentUpload = require("./middleware/attachment-upload");
 
 const { default: mongoose } = require("mongoose");
 
@@ -77,6 +78,12 @@ app.use(
     },
   }),
 );
+app.use((req, res, next) => {
+  if (req.method === "POST" && req.path === "/student/raiseticket") {
+    return attachmentUpload(req, res, next);
+  }
+  next();
+});
 app.use((req, res, next) => {
   res.locals.csrfToken = generateToken(req);
   next();
