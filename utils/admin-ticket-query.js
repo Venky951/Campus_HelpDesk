@@ -3,6 +3,7 @@ const { ticketPriorities, ticketStatuses } = require("./validation");
 
 const PAGE_SIZE = 10;
 const MAX_PAGE = 10000;
+const ALL_FILTER = "All";
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -18,24 +19,32 @@ const parsePage = (value) => {
 const buildAdminFilter = async ({ department, status, priority, search }) => {
   const filter = { category: department };
   const conditions = [];
+  const validStatuses = new Set(ticketStatuses);
+  const validPriorities = new Set(ticketPriorities);
+  const normalizedStatus = validStatuses.has(status) ? status : ALL_FILTER;
+  const normalizedPriority = validPriorities.has(priority)
+    ? priority
+    : ALL_FILTER;
+  const normalizedSearch =
+    typeof search === "string" ? search.trim().slice(0, 100) : "";
 
-  if (status !== "All") {
-    conditions.push({ status });
+  if (normalizedStatus !== ALL_FILTER) {
+    conditions.push({ status: normalizedStatus });
   }
 
-  if (priority !== "All") {
+  if (normalizedPriority !== ALL_FILTER) {
     conditions.push(
-      priority === "Medium"
-        ? { $or: [{ priority: "Medium" }, { priority: { $exists: false } }] }
-        : { priority },
+      normalizedPriority === "Medium"
+        ? { $or: [{ priority: "Medium" }, { priority: null }] }
+        : { priority: normalizedPriority },
     );
   }
 
-  if (search) {
-    const searchRegex = new RegExp(escapeRegex(search), "i");
-    const matchingStudents = await User.find({ username: searchRegex }).select(
-      "_id",
-    );
+  if (normalizedSearch) {
+    const searchRegex = new RegExp(escapeRegex(normalizedSearch), "i");
+    const matchingStudents = await User.find({ username: searchRegex })
+      .select("_id")
+      .lean();
 
     conditions.push({
       $or: [
