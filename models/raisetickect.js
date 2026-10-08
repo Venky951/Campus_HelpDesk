@@ -39,6 +39,13 @@ const raiseTicketSchema = new mongoose.Schema(
       required: true,
     },
     admin: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    attachment: {
+      _id: false,
+      fileId: { type: mongoose.Schema.Types.ObjectId },
+      filename: { type: String, maxlength: 120 },
+      contentType: { type: String, enum: ["image/jpeg", "image/png", "application/pdf"] },
+      size: { type: Number, max: 5 * 1024 * 1024 },
+    },
   },
   { timestamps: true },
 );

@@ -3,6 +3,11 @@ const TicketComment = require("../models/ticket-comment");
 const TicketHistory = require("../models/ticket-history");
 const { actions, recordTicketHistory } = require("../utils/ticket-history");
 const { validationResult } = require("express-validator");
+const { downloadAttachment } = require("../utils/attachments");
+const {
+  adminAttachmentQuery,
+  studentAttachmentQuery,
+} = require("../utils/attachment-access");
 
 const loadComments = (ticketId) =>
   TicketComment.find({ ticket: ticketId })
@@ -140,4 +145,47 @@ exports.postAdminComment = (req, res, next) =>
     "admin/ticket",
     "/admin",
     "admin",
+  );
+
+const sendAttachment = async (req, res, next, ticketQuery) => {
+  try {
+    const ticket = await Ticket.findOne(ticketQuery).select("attachment");
+    if (!ticket || !ticket.attachment?.fileId) {
+      return res.status(404).send("Attachment not found");
+    }
+
+    const stream = downloadAttachment(ticket.attachment.fileId);
+    if (!stream) return res.status(404).send("Attachment not found");
+
+    res.setHeader("Content-Type", ticket.attachment.contentType);
+    res.setHeader("Content-Length", ticket.attachment.size);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${ticket.attachment.filename.replace(/["\r\n]/g, "_")}"`,
+    );
+    stream.once("error", (error) => {
+      if (!res.headersSent) next(error);
+      else res.destroy(error);
+    });
+    stream.pipe(res);
+  } catch (error) {
+    if (error.name === "CastError") return res.status(404).send("Attachment not found");
+    next(error);
+  }
+};
+
+exports.downloadStudentAttachment = (req, res, next) =>
+  sendAttachment(
+    req,
+    res,
+    next,
+    studentAttachmentQuery(req.params.id, req.authenticatedUser._id),
+  );
+
+exports.downloadAdminAttachment = (req, res, next) =>
+  sendAttachment(
+    req,
+    res,
+    next,
+    adminAttachmentQuery(req.params.id, req.authenticatedUser.department),
   );

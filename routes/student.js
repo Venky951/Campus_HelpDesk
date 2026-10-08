@@ -28,6 +28,13 @@ studentdashboard.get(
   param("id").isMongoId().withMessage("Invalid ticket ID"),
   ticketComments.getStudentTicket,
 );
+studentdashboard.get(
+  "/ticket/:id/attachment",
+  isAuth,
+  isStudent,
+  param("id").isMongoId().withMessage("Invalid ticket ID"),
+  ticketComments.downloadStudentAttachment,
+);
 studentdashboard.post(
   "/raiseticket",
   isAuth,

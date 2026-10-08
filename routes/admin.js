@@ -42,6 +42,13 @@ admindashboard.get(
   param("id").isMongoId().withMessage("Invalid ticket ID"),
   ticketComments.getAdminTicket,
 );
+admindashboard.get(
+  "/admin/ticket/:id/attachment",
+  isAuth,
+  isAdmin,
+  param("id").isMongoId().withMessage("Invalid ticket ID"),
+  ticketComments.downloadAdminAttachment,
+);
 admindashboard.post(
   "/update-status/:id",
   isAuth,

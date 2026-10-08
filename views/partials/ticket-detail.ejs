@@ -35,6 +35,14 @@
           <h2 class="text-lg font-semibold mb-2">Description</h2>
           <p class="text-gray-700 whitespace-pre-wrap break-words"><%= ticket.description %></p>
         </div>
+        <% if (ticket.attachment?.fileId) { %>
+          <div class="border-t mt-5 pt-5">
+            <h2 class="text-lg font-semibold mb-2">Attachment</h2>
+            <a href="<%= backUrl %>/ticket/<%= ticket._id %>/attachment" class="text-blue-600 hover:underline break-all">
+              Download <%= ticket.attachment.filename %>
+            </a>
+          </div>
+        <% } %>
       </section>
 
       <section class="bg-white rounded-xl shadow p-5 sm:p-8">
