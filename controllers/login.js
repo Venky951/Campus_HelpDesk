@@ -3,12 +3,18 @@ const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 
 exports.getLogin = (req, res, next) => {
-  res.render("auth/login", {
-    title: "Login",
-    currentPage: "login",
-    isLoggedIn: false,
-    errors: [],
-    oldInput: { username: "" },
+  req.session.save((saveError) => {
+    if (saveError) {
+      return next(saveError);
+    }
+
+    res.render("auth/login", {
+      title: "Login",
+      currentPage: "login",
+      isLoggedIn: false,
+      errors: [],
+      oldInput: { username: "" },
+    });
   });
 };
 
