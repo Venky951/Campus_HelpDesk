@@ -22,6 +22,10 @@ admindashboard.get(
     .isString()
     .isIn(["All", ...ticketPriorities])
     .withMessage("Invalid priority filter"),
+  query("assignment")
+    .optional()
+    .isIn(["All", "assigned", "unassigned"])
+    .withMessage("Invalid assignment filter"),
   query("search")
     .optional()
     .isString()
@@ -62,6 +66,21 @@ admindashboard.get(
   isAdmin,
   param("id").isMongoId().withMessage("Invalid ticket ID"),
   ticketComments.downloadAdminAttachment,
+);
+admindashboard.post(
+  "/admin/ticket/:id/assignment",
+  isAuth,
+  isAdmin,
+  param("id").isMongoId().withMessage("Invalid ticket ID"),
+  body("assignedTo")
+    .optional({ checkFalsy: true })
+    .isMongoId()
+    .withMessage("Invalid assignee"),
+  body("expectedAssignedTo")
+    .optional({ checkFalsy: true })
+    .isMongoId()
+    .withMessage("Invalid assignment version"),
+  adminDetails.updateAssignment,
 );
 admindashboard.post(
   "/update-status/:id",

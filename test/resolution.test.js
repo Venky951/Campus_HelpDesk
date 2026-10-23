@@ -41,7 +41,7 @@ test("resolution validation rejects details over the maximum length", () => {
 test("admin resolution UI intercepts Resolved without inline handlers", () => {
   assert.match(adminView, /data-ticket-status-select/);
   assert.match(adminView, /name="resolutionDetails"/);
-  assert.match(adminView, /admin-dashboard\.js\?v=resolution-dialog-1/);
+  assert.match(adminView, /admin-dashboard\.js\?v=[^"]+/);
   assert.doesNotMatch(adminView, /onchange\s*=/);
   assert.match(adminScript, /value === "Resolved"/);
   assert.match(adminScript, /form\.requestSubmit\(\)/);

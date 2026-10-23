@@ -16,7 +16,14 @@ const parsePage = (value) => {
   return Number.isSafeInteger(page) && page >= 1 && page <= MAX_PAGE ? page : 1;
 };
 
-const buildAdminFilter = async ({ department, status, priority, search }) => {
+const buildAdminFilter = async ({
+  department,
+  status,
+  priority,
+  assignment,
+  adminId,
+  search,
+}) => {
   const filter = { category: department };
   const conditions = [];
   const validStatuses = new Set(ticketStatuses);
@@ -38,6 +45,14 @@ const buildAdminFilter = async ({ department, status, priority, search }) => {
         ? { $or: [{ priority: "Medium" }, { priority: null }] }
         : { priority: normalizedPriority },
     );
+  }
+
+  if (assignment === "assigned") {
+    conditions.push({ assignedTo: adminId });
+  } else if (assignment === "unassigned") {
+    conditions.push({
+      $or: [{ assignedTo: null }, { assignedTo: { $exists: false } }],
+    });
   }
 
   if (normalizedSearch) {

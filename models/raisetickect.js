@@ -39,6 +39,11 @@ const raiseTicketSchema = new mongoose.Schema(
       required: true,
     },
     admin: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     attachment: {
       _id: false,
       fileId: { type: mongoose.Schema.Types.ObjectId },

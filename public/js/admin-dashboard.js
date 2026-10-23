@@ -36,9 +36,15 @@ document.querySelectorAll("[data-update-form]").forEach((form) => {
     form.setAttribute("aria-busy", "true");
     const control = form.querySelector("select");
     if (control) {
-      control.disabled = true;
       control.classList.add("opacity-60");
     }
+  });
+
+});
+
+document.querySelectorAll("[data-submit-assignment]").forEach((select) => {
+  select.addEventListener("change", () => {
+    if (select.form) select.form.requestSubmit();
   });
 });
 

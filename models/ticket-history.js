@@ -19,7 +19,15 @@ const ticketHistorySchema = new mongoose.Schema(
     },
     action: {
       type: String,
-      enum: ["CREATED", "STATUS_CHANGED", "PRIORITY_CHANGED", "COMMENT_ADDED"],
+      enum: [
+        "CREATED",
+        "STATUS_CHANGED",
+        "PRIORITY_CHANGED",
+        "COMMENT_ADDED",
+        "ASSIGNED",
+        "REASSIGNED",
+        "UNASSIGNED",
+      ],
       required: true,
     },
     details: {

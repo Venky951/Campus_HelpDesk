@@ -1,4 +1,5 @@
 const Ticket = require("../models/raisetickect");
+const User = require("../models/register");
 const { validationResult } = require("express-validator");
 const { actions, recordTicketHistory } = require("../utils/ticket-history");
 const {
@@ -9,6 +10,7 @@ const {
 const {
   notificationTypes,
   notifyStudent,
+  notifyUser,
   safelyNotify,
 } = require("../utils/notifications");
 const { getNotificationSummary } = require("../utils/notification-summary");
@@ -25,12 +27,15 @@ exports.getadmin = async (req, res, next) => {
 
     const statusFilter = req.query.status || "All";
     const priorityFilter = req.query.priority || "All";
+    const assignmentFilter = req.query.assignment || "All";
     const search = req.query.search || "";
     const page = parsePage(req.query.page);
     const filter = await buildAdminFilter({
       department: adminDepartment,
       status: statusFilter,
       priority: priorityFilter,
+      assignment: assignmentFilter,
+      adminId: req.authenticatedUser._id,
       search,
     });
 
@@ -59,6 +64,7 @@ exports.getadmin = async (req, res, next) => {
       const params = new URLSearchParams({
         status: statusFilter,
         priority: priorityFilter,
+        assignment: assignmentFilter,
         search,
         page: String(totalPages),
       });
@@ -69,7 +75,15 @@ exports.getadmin = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .skip((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
-      .populate("student", "username");
+      .populate("student", "username")
+      .populate("assignedTo", "username");
+    const eligibleAdmins = await User.find({
+      role: "admin",
+      department: adminDepartment,
+    })
+      .select("_id username")
+      .sort({ username: 1 })
+      .lean();
     const notificationSummary = await getNotificationSummary(
       req.authenticatedUser._id,
     );
@@ -88,6 +102,8 @@ exports.getadmin = async (req, res, next) => {
 
       statusFilter,
       priorityFilter,
+      assignmentFilter,
+      eligibleAdmins,
       search,
       page,
       pageSize: PAGE_SIZE,
@@ -97,6 +113,120 @@ exports.getadmin = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.updateAssignment = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).send("Invalid assignee");
+    }
+
+    const ticket = await Ticket.findOne({
+      _id: req.params.id,
+      category: req.authenticatedUser.department,
+    }).select("title category assignedTo");
+
+    if (!ticket) {
+      return res.status(404).send("Ticket not found");
+    }
+
+    const requestedAssignee = req.body.assignedTo || null;
+    const currentAssignee = ticket.assignedTo
+      ? String(ticket.assignedTo)
+      : null;
+    if (currentAssignee === requestedAssignee) {
+      return res.redirect("/admin");
+    }
+
+    if (requestedAssignee) {
+      const assignee = await User.findOne({
+        _id: requestedAssignee,
+        role: "admin",
+        department: ticket.category,
+      }).select("_id username");
+      if (!assignee) {
+        return res.status(422).send("Assignee must be an admin in this department");
+      }
+    }
+
+    const expectedAssignee = req.body.expectedAssignedTo || null;
+    if (expectedAssignee !== currentAssignee) {
+      return res
+        .status(409)
+        .send("Ticket assignment changed; refresh and try again");
+    }
+
+    const updatedTicket = await Ticket.findOneAndUpdate(
+      {
+        _id: ticket._id,
+        category: ticket.category,
+        assignedTo: currentAssignee,
+      },
+      { $set: { assignedTo: requestedAssignee } },
+      { new: true },
+    ).select("title category assignedTo");
+
+    if (!updatedTicket) {
+      return res
+        .status(409)
+        .send("Ticket assignment changed; refresh and try again");
+    }
+
+    const historyAction = requestedAssignee
+      ? currentAssignee
+        ? actions.REASSIGNED
+        : actions.ASSIGNED
+      : actions.UNASSIGNED;
+
+    try {
+      const history = await recordTicketHistory({
+        ticket: updatedTicket._id,
+        actor: req.authenticatedUser._id,
+        actorRole: "admin",
+        action: historyAction,
+        details: {
+          from: currentAssignee,
+          to: requestedAssignee,
+        },
+      });
+
+      if (requestedAssignee && requestedAssignee !== String(req.authenticatedUser._id)) {
+        await safelyNotify(
+          notifyUser({
+            recipient: requestedAssignee,
+            ticket: updatedTicket._id,
+            type: notificationTypes.ASSIGNMENT_UPDATED,
+            message: `Ticket assigned to you: ${updatedTicket.title}`,
+            eventKey: `assignment:${history._id}`,
+          }),
+        );
+      }
+    } catch (historyError) {
+      const rollback = await Ticket.updateOne(
+        {
+          _id: updatedTicket._id,
+          assignedTo: requestedAssignee,
+        },
+        { $set: { assignedTo: currentAssignee } },
+      );
+      if (rollback.modifiedCount !== 1) {
+        console.error(
+          "Assignment rollback failed:",
+          historyError.name || "Error",
+          historyError.message,
+        );
+      }
+      throw historyError;
+    }
+
+    res.redirect("/admin");
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(404).send("Ticket not found");
+    }
+    next(error);
   }
 };
 

@@ -21,7 +21,7 @@
           </div>
         </div>
 
-        <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div class="rounded-lg bg-slate-50 p-4">
             <dt class="text-sm text-gray-500">Category</dt>
             <dd class="font-medium break-words"><%= ticket.category %></dd>
@@ -33,6 +33,10 @@
           <div class="rounded-lg bg-slate-50 p-4">
             <dt class="text-sm text-gray-500">Priority</dt>
             <dd class="font-medium"><%= ticket.priority || "Medium" %></dd>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-4">
+            <dt class="text-sm text-gray-500">Assigned administrator</dt>
+            <dd class="font-medium break-words"><%= ticket.assignedTo?.username || "Unassigned" %></dd>
           </div>
         </dl>
 

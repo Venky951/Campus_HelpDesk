@@ -118,6 +118,18 @@
     <option value="Urgent" <%= priorityFilter === "Urgent" ? "selected" : "" %>>Urgent</option>
   </select>
   </label>
+  <label class="text-sm font-medium text-gray-700">Assignment
+  <select
+    name="assignment"
+    data-submit-form-on-change
+    aria-label="Filter by assignment"
+    class="mt-1 w-full px-4 py-2 rounded-lg border border-gray-300 bg-white"
+  >
+    <option value="All" <%= assignmentFilter === "All" ? "selected" : "" %>>All tickets</option>
+    <option value="assigned" <%= assignmentFilter === "assigned" ? "selected" : "" %>>Assigned to me</option>
+    <option value="unassigned" <%= assignmentFilter === "unassigned" ? "selected" : "" %>>Unassigned</option>
+  </select>
+  </label>
   <label class="text-sm font-medium text-gray-700">Search
   <input 
   type="text" 
@@ -139,13 +151,14 @@
     <!-- Ticket Table -->
     <div class="bg-white rounded-xl shadow overflow-hidden">
       <div class="overflow-x-auto">
-      <table class="w-full min-w-[900px] text-left">
+      <table class="w-full min-w-[1080px] text-left">
         <thead class="bg-slate-100">
           <tr>
             <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Reference</th>
             <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Title</th>
             <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Student</th>
             <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Category</th>
+            <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Assigned Admin</th>
             <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Priority</th>
             <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Status</th>
             <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Actions</th>
@@ -155,7 +168,7 @@
 
     <% if (tickets.length === 0) { %>
       <tr>
-        <td colspan="7" class="text-center py-10 text-gray-500">
+        <td colspan="8" class="text-center py-10 text-gray-500">
           No tickets found.
         </td>
       </tr>
@@ -187,6 +200,14 @@
 
       <td class="px-4 sm:px-6 py-3">
         <%= ticket.category %>
+      </td>
+
+      <td class="px-4 sm:px-6 py-3">
+        <% if (ticket.assignedTo) { %>
+          <span class="font-medium text-gray-700"><%= ticket.assignedTo.username %></span>
+        <% } else { %>
+          <span class="text-gray-500">Unassigned</span>
+        <% } %>
       </td>
 
       <td class="px-4 sm:px-6 py-3">
@@ -230,6 +251,17 @@
       </td>
 
       <td class="px-4 sm:px-6 py-3 space-y-2">
+        <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">Assignment</span>
+        <form action="/admin/ticket/<%= ticket._id %>/assignment" method="POST" data-update-form>
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="expectedAssignedTo" value="<%= ticket.assignedTo?._id || '' %>">
+          <select name="assignedTo" aria-label="Assign <%= ticket.title %>" class="w-full px-2 py-1 border border-gray-300 rounded bg-white" data-submit-assignment>
+            <option value="">Unassigned</option>
+            <% eligibleAdmins.forEach((admin) => { %>
+              <option value="<%= admin._id %>" <%= String(ticket.assignedTo?._id || '') === String(admin._id) ? 'selected' : '' %>><%= admin.username %></option>
+            <% }) %>
+          </select>
+        </form>
         <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">Priority</span>
 
         <form
@@ -309,6 +341,7 @@
     <% const paginationQuery = new URLSearchParams({
       status: statusFilter,
       priority: priorityFilter,
+      assignment: assignmentFilter,
       search,
     }); %>
     <% const paginationStart = Math.max(1, page - 2); %>
@@ -362,6 +395,6 @@
     </form>
   </dialog>
 
-<script src="/js/admin-dashboard.js?v=resolution-dialog-1"></script>
+<script src="/js/admin-dashboard.js?v=assignment-1"></script>
 </body>
 </html>

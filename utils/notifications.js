@@ -7,6 +7,7 @@ const notificationTypes = Object.freeze({
   PRIORITY_UPDATED: "PRIORITY_UPDATED",
   ADMIN_COMMENT: "ADMIN_COMMENT",
   STUDENT_COMMENT: "STUDENT_COMMENT",
+  ASSIGNMENT_UPDATED: "ASSIGNMENT_UPDATED",
 });
 
 const createForRecipients = async ({
@@ -87,6 +88,23 @@ const notifyStudent = async ({
     NotificationModel,
   });
 
+const notifyUser = async ({
+  recipient,
+  ticket,
+  type,
+  message,
+  eventKey,
+  NotificationModel = Notification,
+}) =>
+  createForRecipients({
+    recipients: [recipient],
+    ticket,
+    type,
+    message,
+    eventKey,
+    NotificationModel,
+  });
+
 const safelyNotify = (notificationPromise) =>
   notificationPromise.catch((error) => {
     console.error(
@@ -100,5 +118,6 @@ module.exports = {
   notificationTypes,
   notifyAdmins,
   notifyStudent,
+  notifyUser,
   safelyNotify,
 };

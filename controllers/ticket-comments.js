@@ -28,10 +28,9 @@ const loadHistory = (ticketId) =>
 
 const renderTicket = async (req, res, next, ticketQuery, view, backUrl) => {
   try {
-    const ticket = await Ticket.findOne(ticketQuery).populate(
-      "student",
-      "username",
-    );
+    const ticket = await Ticket.findOne(ticketQuery)
+      .populate("student", "username")
+      .populate("assignedTo", "username");
 
     if (!ticket) {
       return res.status(404).send("Ticket not found");
@@ -73,10 +72,9 @@ const renderTicket = async (req, res, next, ticketQuery, view, backUrl) => {
 const addComment = async (req, res, next, ticketQuery, view, backUrl, role) => {
   try {
     const errors = validationResult(req);
-    const ticket = await Ticket.findOne(ticketQuery).populate(
-      "student",
-      "username",
-    );
+    const ticket = await Ticket.findOne(ticketQuery)
+      .populate("student", "username")
+      .populate("assignedTo", "username");
 
     if (!ticket) {
       return res.status(404).send("Ticket not found");
