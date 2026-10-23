@@ -63,6 +63,9 @@ const attachmentUpload = require("./middleware/attachment-upload");
 const { default: mongoose } = require("mongoose");
 
 app.use(express.urlencoded({ extended: false, limit: "10kb" }));
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 app.use(
   session({
