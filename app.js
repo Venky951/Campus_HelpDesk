@@ -1,4 +1,12 @@
 require("dotenv").config();
+const { validateRequiredEnvironment } = require("./utils/required-config");
+
+try {
+  validateRequiredEnvironment();
+} catch (error) {
+  console.error(`Configuration error: ${error.message}`);
+  process.exit(1);
+}
 
 //core Module
 const path = require("path");

@@ -47,10 +47,24 @@ Create a `.env` file in the root directory and add the following:
 
 ```env
 MONGO_URI=your_mongodb_connection_string
+SESSION_SECRET=replace_with_a_long_random_secret
+NODE_ENV=development
 PORT=3000
 ```
 
-Add any additional API keys or configuration variables if required.
+Required variables:
+
+- `MONGO_URI`: MongoDB connection string for the application database and session store.
+- `SESSION_SECRET`: A long, unique secret used to sign session cookies. Never commit or share this value.
+
+Optional variables:
+
+- `NODE_ENV`: Use `production` for production deployment; defaults to development behavior when omitted.
+- `PORT`: HTTP port; defaults to `3000`.
+
+The application validates `MONGO_URI` and `SESSION_SECRET` before initializing the database or session store and exits with a configuration error if either is missing.
+
+GridFS attachments are stored in MongoDB. Orphan cleanup is intentionally not run automatically: uploads create a GridFS file before the ticket reference is saved, so an automatic cleanup job could delete a valid in-progress upload. Use a separately controlled maintenance process with an upload grace period and operational locking before removing confirmed orphaned files.
 
 ### 4. Start the Development Server
 
