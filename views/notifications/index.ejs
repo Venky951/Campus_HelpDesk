@@ -1,0 +1,36 @@
+<%- include('../partials/head', { title: 'Notifications' }) %>
+</head>
+<body class="bg-slate-100">
+  <%- include(role === 'admin' ? '../partials/nav' : '../partials/raiseticketnav') %>
+  <main class="px-4 sm:px-10 py-6 sm:py-8">
+    <div class="max-w-3xl mx-auto">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Notifications</h1>
+      <div class="bg-white rounded-xl shadow divide-y">
+        <% if (notifications.length === 0) { %>
+          <p class="p-6 text-gray-500">No notifications yet.</p>
+        <% } else { %>
+          <% notifications.forEach((notification) => { %>
+            <div class="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 <%= notification.isRead ? '' : 'bg-blue-50' %>">
+              <div>
+                <p class="font-medium text-gray-800"><%= notification.message %></p>
+                <p class="text-sm text-gray-500">
+                  <%= notification.ticket?.title || 'Ticket unavailable' %>
+                  · <%= new Date(notification.createdAt).toLocaleString() %>
+                </p>
+              </div>
+              <% if (!notification.isRead && notification.ticket) { %>
+                <form action="/<%= role %>/notifications/<%= notification._id %>/read" method="POST">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="text-sm text-blue-600 hover:underline" type="submit">View and mark read</button>
+                </form>
+              <% } else if (notification.ticket) { %>
+                <a class="text-sm text-blue-600 hover:underline" href="/<%= role %>/ticket/<%= notification.ticket._id %>">View ticket</a>
+              <% } %>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

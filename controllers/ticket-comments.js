@@ -8,6 +8,13 @@ const {
   adminAttachmentQuery,
   studentAttachmentQuery,
 } = require("../utils/attachment-access");
+const {
+  notificationTypes,
+  notifyAdmins,
+  notifyStudent,
+  safelyNotify,
+} = require("../utils/notifications");
+const { getNotificationSummary } = require("../utils/notification-summary");
 
 const loadComments = (ticketId) =>
   TicketComment.find({ ticket: ticketId })
@@ -32,6 +39,17 @@ const renderTicket = async (req, res, next, ticketQuery, view, backUrl) => {
 
     const comments = await loadComments(ticket._id);
     const history = await loadHistory(ticket._id);
+    const resolutionEvent = [...history]
+      .reverse()
+      .find(
+        (event) =>
+          event.action === "STATUS_CHANGED" &&
+          event.details?.to === "Resolved" &&
+          event.details?.resolutionDetails,
+      );
+    const notificationSummary = await getNotificationSummary(
+      req.authenticatedUser._id,
+    );
     res.render(view, {
       title: "Ticket Details",
       isLoggedIn: req.isLoggedIn,
@@ -39,8 +57,10 @@ const renderTicket = async (req, res, next, ticketQuery, view, backUrl) => {
       ticket,
       comments,
       history,
+      resolutionEvent,
       backUrl,
       errors: [],
+      notificationSummary,
     });
   } catch (error) {
     if (error.name === "CastError") {
@@ -65,6 +85,17 @@ const addComment = async (req, res, next, ticketQuery, view, backUrl, role) => {
     if (!errors.isEmpty()) {
       const comments = await loadComments(ticket._id);
       const history = await loadHistory(ticket._id);
+      const resolutionEvent = [...history]
+        .reverse()
+        .find(
+          (event) =>
+            event.action === "STATUS_CHANGED" &&
+            event.details?.to === "Resolved" &&
+            event.details?.resolutionDetails,
+        );
+      const notificationSummary = await getNotificationSummary(
+        req.authenticatedUser._id,
+      );
       return res.status(422).render(view, {
         title: "Ticket Details",
         isLoggedIn: req.isLoggedIn,
@@ -72,8 +103,10 @@ const addComment = async (req, res, next, ticketQuery, view, backUrl, role) => {
         ticket,
         comments,
         history,
+        resolutionEvent,
         backUrl,
         errors: errors.array(),
+        notificationSummary,
       });
     }
 
@@ -85,12 +118,30 @@ const addComment = async (req, res, next, ticketQuery, view, backUrl, role) => {
     });
 
     try {
-      await recordTicketHistory({
+      const history = await recordTicketHistory({
         ticket: ticket._id,
         actor: req.authenticatedUser._id,
         actorRole: role,
         action: actions.COMMENT_ADDED,
       });
+      await safelyNotify(
+        role === "admin"
+          ? notifyStudent({
+              student: ticket.student._id,
+              ticket: ticket._id,
+              type: notificationTypes.ADMIN_COMMENT,
+              message: `New admin comment on: ${ticket.title}`,
+              eventKey: `admin-comment:${history._id}`,
+            })
+          : notifyAdmins({
+              department: ticket.category,
+              ticket: ticket._id,
+              type: notificationTypes.STUDENT_COMMENT,
+              message: `New student reply on: ${ticket.title}`,
+              eventKey: `student-comment:${history._id}`,
+              exclude: req.authenticatedUser._id,
+            }),
+      );
     } catch (historyError) {
       await TicketComment.deleteOne({ _id: comment._id });
       throw historyError;

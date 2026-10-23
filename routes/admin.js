@@ -2,6 +2,7 @@ const express = require("express");
 const admindashboard = express.Router();
 const adminDetails = require("../controllers/admin");
 const ticketComments = require("../controllers/ticket-comments");
+const notifications = require("../controllers/notifications");
 const isAuth = require("../middleware/is-auth");
 const isAdmin = require("../middleware/is-admin");
 const { body, param, query } = require("express-validator");
@@ -36,6 +37,19 @@ admindashboard.get(
 );
 admindashboard.post("/admin-logout", isAuth, isAdmin, adminDetails.postLogout);
 admindashboard.get(
+  "/admin/notifications",
+  isAuth,
+  isAdmin,
+  notifications.getAdminNotifications,
+);
+admindashboard.post(
+  "/admin/notifications/:id/read",
+  isAuth,
+  isAdmin,
+  param("id").isMongoId().withMessage("Invalid notification ID"),
+  notifications.markAdminRead,
+);
+admindashboard.get(
   "/admin/ticket/:id",
   isAuth,
   isAdmin,
@@ -58,6 +72,11 @@ admindashboard.post(
     .isString()
     .isIn(ticketStatuses)
     .withMessage("Invalid ticket status"),
+  body("resolutionDetails")
+    .optional({ checkFalsy: true })
+    .isString()
+    .isLength({ max: 2000 })
+    .withMessage("Resolution details must be 2000 characters or fewer"),
   adminDetails.updateStatus,
 );
 admindashboard.post(

@@ -6,6 +6,12 @@ const {
   uploadAttachment,
   validateAttachment,
 } = require("../utils/attachments");
+const {
+  notificationTypes,
+  notifyAdmins,
+  safelyNotify,
+} = require("../utils/notifications");
+const { getNotificationSummary } = require("../utils/notification-summary");
 
 exports.getStudentDashboard = async (req, res, next) => {
   try {
@@ -26,6 +32,9 @@ exports.getStudentDashboard = async (req, res, next) => {
     const resolvedTickets = tickets.filter(
       (ticket) => ticket.status === "Resolved",
     ).length;
+    const notificationSummary = await getNotificationSummary(
+      req.authenticatedUser._id,
+    );
 
     res.render("student/student", {
       title: "Student Dashboard",
@@ -36,19 +45,28 @@ exports.getStudentDashboard = async (req, res, next) => {
       totalTickets: totalTickets,
       openTickets: openTickets,
       resolvedTickets: resolvedTickets,
+      notificationSummary,
     });
   } catch (err) {
     next(err);
   }
 };
 
-exports.getRaiseTicket = (req, res, next) => {
-  res.render("student/raiseticket", {
-    title: "Raise Ticket",
-    isLoggedIn: req.isLoggedIn,
-    user: req.session.user,
-    errors: [],
-  });
+exports.getRaiseTicket = async (req, res, next) => {
+  try {
+    const notificationSummary = await getNotificationSummary(
+      req.authenticatedUser._id,
+    );
+    res.render("student/raiseticket", {
+      title: "Raise Ticket",
+      isLoggedIn: req.isLoggedIn,
+      user: req.session.user,
+      errors: [],
+      notificationSummary,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 exports.postRaiseTicket = async (req, res, next) => {
   try {
@@ -91,12 +109,21 @@ exports.postRaiseTicket = async (req, res, next) => {
         await ticket.save();
       }
 
-      await recordTicketHistory({
+      const history = await recordTicketHistory({
         ticket: ticket._id,
         actor: req.authenticatedUser._id,
         actorRole: "student",
         action: actions.CREATED,
       });
+      await safelyNotify(
+        notifyAdmins({
+          department: ticket.category,
+          ticket: ticket._id,
+          type: notificationTypes.TICKET_CREATED,
+          message: `New ticket submitted: ${ticket.title}`,
+          eventKey: `ticket-created:${history._id}`,
+        }),
+      );
     } catch (historyError) {
       await deleteAttachment(attachment?.fileId).catch(() => {});
       await Ticket.deleteOne({ _id: ticket._id });

@@ -6,6 +6,13 @@ const {
   buildAdminFilter,
   parsePage,
 } = require("../utils/admin-ticket-query");
+const {
+  notificationTypes,
+  notifyStudent,
+  safelyNotify,
+} = require("../utils/notifications");
+const { getNotificationSummary } = require("../utils/notification-summary");
+const { validateResolutionDetails } = require("../utils/resolution");
 
 exports.getadmin = async (req, res, next) => {
   try {
@@ -63,6 +70,9 @@ exports.getadmin = async (req, res, next) => {
       .skip((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
       .populate("student", "username");
+    const notificationSummary = await getNotificationSummary(
+      req.authenticatedUser._id,
+    );
 
     res.render("admin/admin", {
       title: "Admin Dashboard",
@@ -83,6 +93,7 @@ exports.getadmin = async (req, res, next) => {
       pageSize: PAGE_SIZE,
       totalMatchingTickets: matchingTickets,
       totalPages,
+      notificationSummary,
     });
   } catch (err) {
     next(err);
@@ -92,7 +103,7 @@ exports.getadmin = async (req, res, next) => {
 exports.updateStatus = async (req, res, next) => {
   try {
     const ticketId = req.params.id;
-    const { status } = req.body;
+    const { status, resolutionDetails } = req.body;
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -113,17 +124,41 @@ exports.updateStatus = async (req, res, next) => {
       return res.redirect("/admin");
     }
 
+    const resolution = validateResolutionDetails(
+      status,
+      previousStatus,
+      resolutionDetails,
+    );
+    if (!resolution.valid) {
+      return res.status(422).send(resolution.message);
+    }
+
     ticket.status = status;
     await ticket.save();
 
     try {
-      await recordTicketHistory({
+      const history = await recordTicketHistory({
         ticket: ticket._id,
         actor: req.authenticatedUser._id,
         actorRole: "admin",
         action: actions.STATUS_CHANGED,
-        details: { from: previousStatus, to: status },
+        details: {
+          from: previousStatus,
+          to: status,
+          ...(status === "Resolved"
+            ? { resolutionDetails: resolution.details }
+            : {}),
+        },
       });
+      await safelyNotify(
+        notifyStudent({
+          student: ticket.student,
+          ticket: ticket._id,
+          type: notificationTypes.STATUS_UPDATED,
+          message: `Ticket status updated: ${ticket.title}`,
+          eventKey: `status-updated:${history._id}`,
+        }),
+      );
     } catch (historyError) {
       ticket.status = previousStatus;
       await ticket.save();
@@ -168,13 +203,22 @@ exports.updatePriority = async (req, res, next) => {
     await ticket.save();
 
     try {
-      await recordTicketHistory({
+      const history = await recordTicketHistory({
         ticket: ticket._id,
         actor: req.authenticatedUser._id,
         actorRole: "admin",
         action: actions.PRIORITY_CHANGED,
         details: { from: previousPriority, to: priority },
       });
+      await safelyNotify(
+        notifyStudent({
+          student: ticket.student,
+          ticket: ticket._id,
+          type: notificationTypes.PRIORITY_UPDATED,
+          message: `Ticket priority updated: ${ticket.title}`,
+          eventKey: `priority-updated:${history._id}`,
+        }),
+      );
     } catch (historyError) {
       ticket.priority = previousPriority;
       await ticket.save();

@@ -3,6 +3,7 @@ const studentdashboard = express.Router();
 
 const studentdetails = require("../controllers/student");
 const ticketComments = require("../controllers/ticket-comments");
+const notifications = require("../controllers/notifications");
 const isAuth = require("../middleware/is-auth");
 const isStudent = require("../middleware/is-student");
 const { body, param } = require("express-validator");
@@ -34,6 +35,19 @@ studentdashboard.get(
   isStudent,
   param("id").isMongoId().withMessage("Invalid ticket ID"),
   ticketComments.downloadStudentAttachment,
+);
+studentdashboard.get(
+  "/notifications",
+  isAuth,
+  isStudent,
+  notifications.getStudentNotifications,
+);
+studentdashboard.post(
+  "/notifications/:id/read",
+  isAuth,
+  isStudent,
+  param("id").isMongoId().withMessage("Invalid notification ID"),
+  notifications.markStudentRead,
 );
 studentdashboard.post(
   "/raiseticket",
