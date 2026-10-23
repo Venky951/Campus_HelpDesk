@@ -8,6 +8,9 @@ const actions = Object.freeze({
   ASSIGNED: "ASSIGNED",
   REASSIGNED: "REASSIGNED",
   UNASSIGNED: "UNASSIGNED",
+  REOPENED: "REOPENED",
+  RESOLUTION_CONFIRMED: "RESOLUTION_CONFIRMED",
+  FEEDBACK_SUBMITTED: "FEEDBACK_SUBMITTED",
 });
 
 const recordTicketHistory = ({ ticket, actor, actorRole, action, details }) =>

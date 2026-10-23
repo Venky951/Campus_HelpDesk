@@ -6,6 +6,9 @@ const notificationTypes = [
   "PRIORITY_UPDATED",
   "ADMIN_COMMENT",
   "STUDENT_COMMENT",
+  "RESOLUTION_CONFIRMED",
+  "TICKET_REOPENED",
+  "FEEDBACK_SUBMITTED",
 ];
 
 const notificationSchema = new mongoose.Schema(

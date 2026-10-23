@@ -54,6 +54,75 @@
             </p>
           </div>
         <% } %>
+        <% if (ticket.reopenCount > 0) { %>
+          <div class="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <h2 class="font-semibold text-amber-900">Reopened ticket</h2>
+            <p class="mt-1 text-sm text-amber-800">
+              Reopened <%= ticket.reopenCount %> time<%= ticket.reopenCount === 1 ? "" : "s" %>.
+              <% if (ticket.lastReopenedAt) { %>
+                Last reopened <%= new Date(ticket.lastReopenedAt).toLocaleString() %>.
+              <% } %>
+            </p>
+          </div>
+        <% } %>
+        <% if (user.role === "admin" && (ticket.resolutionConfirmedAt || ticket.feedbackSubmittedAt)) { %>
+          <div class="mt-5 rounded-lg border border-blue-200 bg-blue-50 p-5">
+            <h2 class="text-lg font-semibold text-blue-900">Student feedback</h2>
+            <% if (ticket.resolutionConfirmedAt) { %>
+              <p class="mt-1 text-sm text-blue-800">Resolution confirmed <%= new Date(ticket.resolutionConfirmedAt).toLocaleString() %>.</p>
+            <% } %>
+            <% if (ticket.feedbackSubmittedAt) { %>
+              <p class="mt-2 text-sm text-gray-700">Rating: <%= ticket.feedbackRating %> / 5</p>
+              <% if (ticket.feedbackComment) { %>
+                <p class="mt-1 whitespace-pre-wrap text-sm text-gray-700"><%= ticket.feedbackComment %></p>
+              <% } %>
+            <% } %>
+          </div>
+        <% } %>
+        <% if (user.role === "student" && ticket.status === "Resolved") { %>
+          <section class="mt-5 rounded-lg border border-green-200 bg-green-50 p-5">
+            <% if (!ticket.resolutionConfirmedAt) { %>
+              <h2 class="text-lg font-semibold text-green-900">Is this issue resolved?</h2>
+              <p class="mt-1 text-sm text-green-800">Confirm the resolution or reopen the ticket if the problem persists.</p>
+              <div class="mt-4 flex flex-col gap-4">
+                <form action="/student/ticket/<%= ticket._id %>/confirm-resolution" method="POST">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="w-full rounded-md bg-green-700 px-4 py-2 text-white hover:bg-green-800 sm:w-auto">Confirm Resolution</button>
+                </form>
+                <form action="/student/ticket/<%= ticket._id %>/reopen" method="POST" class="space-y-2">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <label for="reopen-reason" class="block text-sm font-medium text-amber-900">Why does this ticket need to be reopened?</label>
+                  <textarea id="reopen-reason" name="reason" rows="3" maxlength="2000" required class="block w-full rounded-md border border-amber-300 px-3 py-2" placeholder="Explain what is still unresolved"></textarea>
+                  <button type="submit" class="rounded-md bg-amber-600 px-4 py-2 text-white hover:bg-amber-700">Reopen Ticket</button>
+                </form>
+              </div>
+            <% } else { %>
+              <h2 class="text-lg font-semibold text-green-900">Resolution confirmed</h2>
+              <p class="mt-1 text-sm text-green-800">Confirmed <%= new Date(ticket.resolutionConfirmedAt).toLocaleString() %>.</p>
+              <% if (!ticket.feedbackSubmittedAt) { %>
+                <form action="/student/ticket/<%= ticket._id %>/feedback" method="POST" class="mt-4 space-y-3">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <label for="feedback-rating" class="block text-sm font-medium text-gray-700">Rate this resolution</label>
+                  <select id="feedback-rating" name="feedbackRating" required class="rounded-md border border-gray-300 px-3 py-2">
+                    <option value="">Choose a rating</option>
+                    <% [1, 2, 3, 4, 5].forEach((rating) => { %>
+                      <option value="<%= rating %>"><%= rating %> / 5</option>
+                    <% }) %>
+                  </select>
+                  <label for="feedback-comment" class="block text-sm font-medium text-gray-700">Feedback comment (optional)</label>
+                  <textarea id="feedback-comment" name="feedbackComment" rows="3" maxlength="2000" class="block w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Share feedback about the resolution"></textarea>
+                  <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Submit Feedback</button>
+                </form>
+              <% } else { %>
+                <p class="mt-3 font-medium text-green-900">Thank you for your feedback.</p>
+                <p class="mt-1 text-sm text-gray-700">Rating: <%= ticket.feedbackRating %> / 5</p>
+                <% if (ticket.feedbackComment) { %>
+                  <p class="mt-1 whitespace-pre-wrap text-sm text-gray-700"><%= ticket.feedbackComment %></p>
+                <% } %>
+              <% } %>
+            <% } %>
+          </section>
+        <% } %>
         <% if (ticket.attachment?.fileId) { %>
           <div class="border-t mt-5 pt-5">
             <h2 class="text-lg font-semibold mb-2">Attachment</h2>
@@ -100,10 +169,16 @@
                 <time class="text-sm text-gray-500"><%= new Date(event.createdAt).toLocaleString() %></time>
                 <p class="font-medium text-gray-800">
                   <%= event.actorRole === "admin" ? "Admin" : "Student" %>
-                  <%= event.action === "CREATED" ? "created this ticket" : event.action === "COMMENT_ADDED" ? "added a comment" : event.action === "STATUS_CHANGED" ? "changed status" : "changed priority" %>
+                  <%= event.action === "CREATED" ? "created this ticket" : event.action === "COMMENT_ADDED" ? "added a comment" : event.action === "STATUS_CHANGED" ? "changed status" : event.action === "PRIORITY_CHANGED" ? "changed priority" : event.action === "REOPENED" ? "reopened this ticket" : event.action === "RESOLUTION_CONFIRMED" ? "confirmed the resolution" : event.action === "FEEDBACK_SUBMITTED" ? "submitted feedback" : event.action === "ASSIGNED" ? "assigned this ticket" : event.action === "REASSIGNED" ? "reassigned this ticket" : event.action === "UNASSIGNED" ? "unassigned this ticket" : "updated this ticket" %>
                 </p>
                 <% if (event.details?.from && event.details?.to) { %>
                   <p class="text-gray-600 break-words"><%= event.details.from %> &rarr; <%= event.details.to %></p>
+                <% } %>
+                <% if (event.details?.reason) { %>
+                  <p class="text-gray-600 whitespace-pre-wrap break-words"><%= event.details.reason %></p>
+                <% } %>
+                <% if (event.action === "FEEDBACK_SUBMITTED" && event.details) { %>
+                  <p class="text-gray-600">Rating: <%= event.details.rating %> / 5<%= event.details.comment ? ` — ${event.details.comment}` : "" %></p>
                 <% } %>
               </li>
             <% }) %>

@@ -44,7 +44,7 @@ const markRead = async (req, res, next, role) => {
         recipient: req.authenticatedUser._id,
       },
       { $set: { isRead: true } },
-      { new: true },
+      { returnDocument: "after" },
     );
     if (!notification) return res.status(404).send("Notification not found");
 

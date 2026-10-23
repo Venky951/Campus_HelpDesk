@@ -44,6 +44,33 @@ const raiseTicketSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    resolutionConfirmedAt: {
+      type: Date,
+      default: null,
+    },
+    reopenCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    lastReopenedAt: {
+      type: Date,
+      default: null,
+    },
+    feedbackRating: {
+      type: Number,
+      min: 1,
+      max: 5,
+    },
+    feedbackComment: {
+      type: String,
+      trim: true,
+      maxlength: 2000,
+    },
+    feedbackSubmittedAt: {
+      type: Date,
+      default: null,
+    },
     attachment: {
       _id: false,
       fileId: { type: mongoose.Schema.Types.ObjectId },

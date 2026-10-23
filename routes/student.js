@@ -3,6 +3,7 @@ const studentdashboard = express.Router();
 
 const studentdetails = require("../controllers/student");
 const ticketComments = require("../controllers/ticket-comments");
+const ticketLifecycle = require("../controllers/ticket-lifecycle");
 const notifications = require("../controllers/notifications");
 const isAuth = require("../middleware/is-auth");
 const isStudent = require("../middleware/is-student");
@@ -88,6 +89,42 @@ studentdashboard.post(
     .isLength({ max: 2000 })
     .withMessage("Comment must be 2000 characters or fewer"),
   ticketComments.postStudentComment,
+);
+studentdashboard.post(
+  "/ticket/:id/confirm-resolution",
+  isAuth,
+  isStudent,
+  param("id").isMongoId().withMessage("Invalid ticket ID"),
+  ticketLifecycle.confirmResolution,
+);
+studentdashboard.post(
+  "/ticket/:id/reopen",
+  isAuth,
+  isStudent,
+  param("id").isMongoId().withMessage("Invalid ticket ID"),
+  body("reason")
+    .isString()
+    .trim()
+    .notEmpty()
+    .isLength({ max: 2000 })
+    .withMessage("A reopening reason is required"),
+  ticketLifecycle.reopenTicket,
+);
+studentdashboard.post(
+  "/ticket/:id/feedback",
+  isAuth,
+  isStudent,
+  param("id").isMongoId().withMessage("Invalid ticket ID"),
+  body("feedbackRating")
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Feedback rating must be between 1 and 5"),
+  body("feedbackComment")
+    .optional({ checkFalsy: true })
+    .isString()
+    .trim()
+    .isLength({ max: 2000 })
+    .withMessage("Feedback comment must be 2000 characters or fewer"),
+  ticketLifecycle.submitFeedback,
 );
 studentdashboard.post("/logout", isAuth, isStudent, studentdetails.postLogout);
 module.exports = studentdashboard;

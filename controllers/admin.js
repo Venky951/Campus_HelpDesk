@@ -165,7 +165,7 @@ exports.updateAssignment = async (req, res, next) => {
         assignedTo: currentAssignee,
       },
       { $set: { assignedTo: requestedAssignee } },
-      { new: true },
+      { returnDocument: "after" },
     ).select("title category assignedTo");
 
     if (!updatedTicket) {
@@ -263,7 +263,29 @@ exports.updateStatus = async (req, res, next) => {
       return res.status(422).send(resolution.message);
     }
 
+    if (
+      previousStatus === "Resolved" &&
+      status !== "Resolved" &&
+      ticket.resolutionConfirmedAt
+    ) {
+      return res
+        .status(422)
+        .send("Confirmed resolutions cannot be reopened by an admin");
+    }
+
+    const previousLifecycleState = {
+      resolutionConfirmedAt: ticket.resolutionConfirmedAt,
+      feedbackRating: ticket.feedbackRating,
+      feedbackComment: ticket.feedbackComment,
+      feedbackSubmittedAt: ticket.feedbackSubmittedAt,
+    };
     ticket.status = status;
+    if (status === "Resolved") {
+      ticket.resolutionConfirmedAt = null;
+      ticket.feedbackRating = null;
+      ticket.feedbackComment = null;
+      ticket.feedbackSubmittedAt = null;
+    }
     await ticket.save();
 
     try {
@@ -291,6 +313,12 @@ exports.updateStatus = async (req, res, next) => {
       );
     } catch (historyError) {
       ticket.status = previousStatus;
+      if (status === "Resolved") {
+        ticket.resolutionConfirmedAt = previousLifecycleState.resolutionConfirmedAt;
+        ticket.feedbackRating = previousLifecycleState.feedbackRating;
+        ticket.feedbackComment = previousLifecycleState.feedbackComment;
+        ticket.feedbackSubmittedAt = previousLifecycleState.feedbackSubmittedAt;
+      }
       await ticket.save();
       throw historyError;
     }
