@@ -33,45 +33,51 @@
   </nav>
 
   <!-- Main Container -->
-  <div class="px-4 sm:px-10 py-6 sm:py-8">
+  <main class="px-4 sm:px-6 lg:px-10 py-6 sm:py-8">
 
     <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-8">
+      <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-blue-600">Department workspace</p>
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">
         Admin Dashboard
       </h1>
+      </div>
+      <p class="text-sm text-gray-500">Statistics cover all tickets in your department.</p>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-      <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-gray-500">Total Tickets</p>
-        <h2 class="text-3xl font-bold"><%= totalTickets %></h2>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-10">
+      <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border-l-4 border-slate-400">
+        <p class="text-xs sm:text-sm font-medium text-gray-500">Total Tickets</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-gray-800"><%= totalTickets %></h2>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-gray-500">Open</p>
-        <h2 class="text-3xl font-bold text-red-500"><%= openTickets %></h2>
+      <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border-l-4 border-red-400">
+        <p class="text-xs sm:text-sm font-medium text-gray-500">Open</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-red-500"><%= openTickets %></h2>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-gray-500">In Progress</p>
-        <h2 class="text-3xl font-bold text-yellow-500"><%= inProgressTickets %></h2>
+      <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border-l-4 border-yellow-400">
+        <p class="text-xs sm:text-sm font-medium text-gray-500">In Progress</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-yellow-500"><%= inProgressTickets %></h2>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-gray-500">Resolved</p>
-        <h2 class="text-3xl font-bold text-green-600"><%= resolvedTickets %></h2>
+      <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+        <p class="text-xs sm:text-sm font-medium text-gray-500">Resolved</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-green-600"><%= resolvedTickets %></h2>
       </div>
     </div>
 
     <!-- Filters -->
-    <form action="/admin" method="GET" class="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
+    <form action="/admin" method="GET" class="bg-white rounded-xl shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[auto_auto_1fr_auto] gap-3 items-end mb-6">
 
+  <label class="text-sm font-medium text-gray-700">Status
   <select
     name="status"
     data-submit-form-on-change
-    class="px-4 py-2 rounded-lg border"
+    aria-label="Filter by status"
+    class="mt-1 w-full px-4 py-2 rounded-lg border border-gray-300 bg-white"
   >
 
     <option value="All"
@@ -95,10 +101,13 @@
     </option>
 
   </select>
+  </label>
+  <label class="text-sm font-medium text-gray-700">Priority
   <select
     name="priority"
     data-submit-form-on-change
-    class="px-4 py-2 rounded-lg border"
+    aria-label="Filter by priority"
+    class="mt-1 w-full px-4 py-2 rounded-lg border border-gray-300 bg-white"
   >
     <option value="All" <%= priorityFilter === "All" ? "selected" : "" %>>
       All priorities
@@ -108,17 +117,20 @@
     <option value="High" <%= priorityFilter === "High" ? "selected" : "" %>>High</option>
     <option value="Urgent" <%= priorityFilter === "Urgent" ? "selected" : "" %>>Urgent</option>
   </select>
+  </label>
+  <label class="text-sm font-medium text-gray-700">Search
   <input 
   type="text" 
   name="search"
   value="<%= search %>"
   placeholder="Search by title or student..."
-  class="px-4 py-2 rounded-lg border w-full sm:w-64"
+  class="mt-1 px-4 py-2 rounded-lg border border-gray-300 w-full"
 />
+  </label>
 
 <button
   type="submit"
-  class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+  class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium"
 >
   Search
 </button>
@@ -127,16 +139,16 @@
     <!-- Ticket Table -->
     <div class="bg-white rounded-xl shadow overflow-hidden">
       <div class="overflow-x-auto">
-      <table class="w-full min-w-[760px] text-left">
+      <table class="w-full min-w-[900px] text-left">
         <thead class="bg-slate-100">
           <tr>
-            <th class="px-6 py-3">ID</th>
-            <th class="px-6 py-3">Title</th>
-            <th class="px-6 py-3">Student</th>
-            <th class="px-6 py-3">Category</th>
-            <th class="px-6 py-3">Priority</th>
-            <th class="px-6 py-3">Status</th>
-            <th class="px-6 py-3">Action</th>
+            <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Reference</th>
+            <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Title</th>
+            <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Student</th>
+            <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Category</th>
+            <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Priority</th>
+            <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Status</th>
+            <th class="px-4 sm:px-6 py-3 text-xs uppercase tracking-wide text-gray-500">Actions</th>
           </tr>
         </thead>
        <tbody>
@@ -153,25 +165,31 @@
 
     <tr class="border-t hover:bg-slate-50">
 
-      <td class="px-6 py-3 max-w-xs break-all">
-        <%= ticket._id %>
+      <td class="px-4 sm:px-6 py-3">
+        <span class="font-mono font-semibold text-gray-700" title="Full ticket ID: <%= ticket._id %>">
+          TKT-<%= String(ticket._id).slice(-8).toUpperCase() %>
+        </span>
+        <details class="mt-1 text-xs text-gray-500">
+          <summary class="cursor-pointer hover:text-blue-600">Show full ID</summary>
+          <code class="break-all"><%= ticket._id %></code>
+        </details>
       </td>
 
-      <td class="px-6 py-3 max-w-xs break-words">
+      <td class="px-4 sm:px-6 py-3 max-w-xs break-words">
         <a href="/admin/ticket/<%= ticket._id %>" class="text-blue-600 hover:underline break-words">
           <%= ticket.title %>
         </a>
       </td>
 
-      <td class="px-6 py-3">
+      <td class="px-4 sm:px-6 py-3">
         <%= ticket.student.username %>
       </td>
 
-      <td class="px-6 py-3">
+      <td class="px-4 sm:px-6 py-3">
         <%= ticket.category %>
       </td>
 
-      <td class="px-6 py-3">
+      <td class="px-4 sm:px-6 py-3">
         <% const priority = ticket.priority || "Medium"; %>
         <% if (priority === "Urgent") { %>
           <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
@@ -192,7 +210,7 @@
         <% } %>
       </td>
 
-      <td class="px-6 py-3">
+      <td class="px-4 sm:px-6 py-3">
 
         <span class="
           px-3 py-1 rounded-full text-sm
@@ -211,17 +229,20 @@
 
       </td>
 
-      <td class="px-6 py-3">
+      <td class="px-4 sm:px-6 py-3 space-y-2">
+        <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">Priority</span>
 
         <form
           action="/update-priority/<%= ticket._id %>"
           method="POST"
+          data-update-form
         >
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <select
             name="priority"
             data-submit-form-on-change
-            class="px-2 py-1 border rounded"
+            aria-label="Update priority for <%= ticket.title %>"
+            class="w-full px-2 py-1 border border-gray-300 rounded bg-white"
           >
             <% const selectedPriority = ticket.priority || "Medium"; %>
             <option value="Low" <%= selectedPriority === "Low" ? "selected" : "" %>>Low</option>
@@ -231,9 +252,11 @@
           </select>
         </form>
 
+        <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">Status</span>
         <form
           action="/update-status/<%= ticket._id %>"
           method="POST"
+          data-update-form
         >
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <input type="hidden" name="resolutionDetails" value="">
@@ -243,7 +266,8 @@
             data-submit-form-on-change
             data-ticket-status-select
             data-ticket-title="<%= ticket.title %>"
-            class="px-2 py-1 border rounded"
+            aria-label="Update status for <%= ticket.title %>"
+            class="w-full px-2 py-1 border border-gray-300 rounded bg-white"
           >
 
             <option
@@ -267,6 +291,10 @@
           </select>
 
         </form>
+        <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">Ticket</span>
+        <a href="/admin/ticket/<%= ticket._id %>" class="block text-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          View Details / Comment
+        </a>
 
       </td>
 
@@ -276,7 +304,6 @@
 
 </tbody>
       </table>
-      </div>
     </div>
 
     <% const paginationQuery = new URLSearchParams({
@@ -318,7 +345,8 @@
       <% } %>
     </nav>
 
-  </div>
+    </div>
+  </main>
 
   <dialog id="resolution-dialog" aria-labelledby="resolution-dialog-title" class="rounded-xl p-0 shadow-xl backdrop:bg-slate-900/50">
     <form method="dialog" class="w-[min(90vw,32rem)] bg-white p-6">

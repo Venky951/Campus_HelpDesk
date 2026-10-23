@@ -2,14 +2,19 @@
   <%- include(navPartial) %>
 
   <main class="px-4 sm:px-10 py-6 sm:py-8">
-    <div class="max-w-4xl mx-auto space-y-6">
-      <a href="<%= backUrl %>" class="text-blue-600 font-medium hover:underline">Back to dashboard</a>
+    <div class="max-w-5xl mx-auto space-y-6">
+      <a href="<%= backUrl %>" class="inline-flex items-center text-blue-600 font-medium hover:underline">&larr; Back to dashboard</a>
 
       <section class="bg-white rounded-xl shadow p-5 sm:p-8">
         <div class="flex flex-col sm:flex-row sm:justify-between gap-4 mb-6">
           <div>
-            <p class="text-sm text-gray-500">Ticket details</p>
+            <p class="text-sm font-semibold uppercase tracking-wide text-blue-600">Ticket details</p>
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 break-words"><%= ticket.title %></h1>
+            <p class="mt-2 font-mono text-sm text-gray-500">TKT-<%= String(ticket._id).slice(-8).toUpperCase() %></p>
+            <details class="mt-1 text-xs text-gray-500">
+              <summary class="cursor-pointer hover:text-blue-600">Show full ticket ID</summary>
+              <code class="break-all"><%= ticket._id %></code>
+            </details>
           </div>
           <div class="text-sm text-gray-500 sm:text-right">
             Created <%= new Date(ticket.createdAt).toLocaleString() %>
@@ -17,15 +22,15 @@
         </div>
 
         <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div>
+          <div class="rounded-lg bg-slate-50 p-4">
             <dt class="text-sm text-gray-500">Category</dt>
             <dd class="font-medium break-words"><%= ticket.category %></dd>
           </div>
-          <div>
+          <div class="rounded-lg bg-slate-50 p-4">
             <dt class="text-sm text-gray-500">Status</dt>
             <dd class="font-medium"><%= ticket.status %></dd>
           </div>
-          <div>
+          <div class="rounded-lg bg-slate-50 p-4">
             <dt class="text-sm text-gray-500">Priority</dt>
             <dd class="font-medium"><%= ticket.priority || "Medium" %></dd>
           </div>
@@ -36,10 +41,10 @@
           <p class="text-gray-700 whitespace-pre-wrap break-words"><%= ticket.description %></p>
         </div>
         <% if (resolutionEvent) { %>
-          <div class="border-t mt-5 pt-5">
-            <h2 class="text-lg font-semibold mb-2">Resolution Details</h2>
+          <div class="border-l-4 border-green-500 bg-green-50 mt-5 p-5 rounded-r-lg">
+            <h2 class="text-lg font-semibold mb-2 text-green-900">Resolution Details</h2>
             <p class="text-gray-700 whitespace-pre-wrap break-words"><%= resolutionEvent.details.resolutionDetails %></p>
-            <p class="mt-2 text-sm text-gray-500">
+            <p class="mt-2 text-sm text-green-800">
               Resolved by <%= resolutionEvent.actor?.username || "Admin" %>
               on <%= new Date(resolutionEvent.createdAt).toLocaleString() %>
             </p>
@@ -55,8 +60,11 @@
         <% } %>
       </section>
 
-      <section class="bg-white rounded-xl shadow p-5 sm:p-8">
-        <h2 class="text-xl font-semibold mb-5">Conversation</h2>
+      <section class="bg-white rounded-xl shadow-sm p-5 sm:p-8">
+        <div class="flex items-center justify-between gap-3 mb-5">
+          <h2 class="text-xl font-semibold">Conversation</h2>
+          <a href="#reply" class="text-sm font-medium text-blue-600 hover:underline">Add reply</a>
+        </div>
 
         <% if (comments.length === 0) { %>
           <p class="text-gray-500">No replies yet.</p>
@@ -75,7 +83,7 @@
         <% } %>
       </section>
 
-      <section class="bg-white rounded-xl shadow p-5 sm:p-8">
+      <section class="bg-white rounded-xl shadow-sm p-5 sm:p-8">
         <h2 class="text-xl font-semibold mb-5">Ticket History</h2>
 
         <% if (history.length === 0) { %>
@@ -99,7 +107,7 @@
         <% } %>
       </section>
 
-      <section class="bg-white rounded-xl shadow p-5 sm:p-8">
+      <section id="reply" class="bg-white rounded-xl shadow-sm p-5 sm:p-8">
         <h2 class="text-xl font-semibold mb-4">Reply</h2>
         <%- include('../partials/errors') %>
         <form action="<%= commentAction %>" method="POST" class="space-y-4">

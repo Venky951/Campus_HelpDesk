@@ -3,17 +3,27 @@
 <body class="bg-slate-100">
   <%- include(role === 'admin' ? '../partials/nav' : '../partials/raiseticketnav') %>
   <main class="px-4 sm:px-10 py-6 sm:py-8">
-    <div class="max-w-3xl mx-auto">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Notifications</h1>
-      <div class="bg-white rounded-xl shadow divide-y">
+    <div class="max-w-4xl mx-auto">
+      <div class="mb-6">
+        <p class="text-sm font-semibold uppercase tracking-wide text-blue-600">Inbox</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Notifications</h1>
+        <p class="mt-1 text-sm text-gray-500">Updates about your tickets and conversations.</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border divide-y overflow-hidden">
         <% if (notifications.length === 0) { %>
-          <p class="p-6 text-gray-500">No notifications yet.</p>
+          <div class="p-10 text-center">
+            <p class="font-medium text-gray-700">No notifications yet</p>
+            <p class="mt-1 text-sm text-gray-500">New ticket updates will appear here.</p>
+          </div>
         <% } else { %>
           <% notifications.forEach((notification) => { %>
-            <div class="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 <%= notification.isRead ? '' : 'bg-blue-50' %>">
-              <div>
-                <p class="font-medium text-gray-800"><%= notification.message %></p>
-                <p class="text-sm text-gray-500">
+            <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 <%= notification.isRead ? 'bg-white' : 'bg-blue-50 border-l-4 border-blue-500' %>">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <% if (!notification.isRead) { %><span class="h-2 w-2 rounded-full bg-blue-600" aria-label="Unread"></span><% } %>
+                  <p class="font-medium text-gray-800 break-words"><%= notification.message %></p>
+                </div>
+                <p class="mt-1 text-sm text-gray-500 break-words">
                   <%= notification.ticket?.title || 'Ticket unavailable' %>
                   · <%= new Date(notification.createdAt).toLocaleString() %>
                 </p>
@@ -21,10 +31,10 @@
               <% if (!notification.isRead && notification.ticket) { %>
                 <form action="/<%= role %>/notifications/<%= notification._id %>/read" method="POST">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                  <button class="text-sm text-blue-600 hover:underline" type="submit">View and mark read</button>
+                  <button class="w-full sm:w-auto rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700" type="submit">View and mark read</button>
                 </form>
               <% } else if (notification.ticket) { %>
-                <a class="text-sm text-blue-600 hover:underline" href="/<%= role %>/ticket/<%= notification.ticket._id %>">View ticket</a>
+                <a class="w-full sm:w-auto text-center rounded-md border border-blue-600 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50" href="/<%= role %>/ticket/<%= notification.ticket._id %>">View ticket</a>
               <% } %>
             </div>
           <% }) %>

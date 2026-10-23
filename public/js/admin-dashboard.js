@@ -1,35 +1,46 @@
-document
-  .querySelectorAll("[data-submit-form-on-change]")
-  .forEach((select) => {
-    select.addEventListener("change", () => {
-      const form = select.form;
-      if (!form) return;
+document.querySelectorAll("[data-submit-form-on-change]").forEach((select) => {
+  select.dataset.previousValue = select.value;
+  select.addEventListener("change", () => {
+    const form = select.form;
+    if (!form) return;
 
-      if (
-        select.matches("[data-ticket-status-select]") &&
-        select.value === "Resolved" &&
-        select.dataset.previousValue !== "Resolved"
-      ) {
-        const previousValue = select.dataset.previousValue;
-        select.value = previousValue;
-        const dialog = document.getElementById("resolution-dialog");
-        const details = document.getElementById("resolution-details");
-        const title = document.getElementById("resolution-ticket-title");
-        if (!dialog || !details || !title) return;
+    if (
+      select.matches("[data-ticket-status-select]") &&
+      select.value === "Resolved" &&
+      select.dataset.previousValue !== "Resolved"
+    ) {
+      const previousValue = select.dataset.previousValue;
+      select.value = previousValue;
+      const dialog = document.getElementById("resolution-dialog");
+      const details = document.getElementById("resolution-details");
+      const title = document.getElementById("resolution-ticket-title");
+      if (!dialog || !details || !title) return;
 
-        dialog._resolutionForm = form;
-        dialog._resolutionSelect = select;
-        title.textContent = select.dataset.ticketTitle || "Ticket";
-        details.value = "";
-        dialog.showModal();
-        return;
-      }
+      dialog._resolutionForm = form;
+      dialog._resolutionSelect = select;
+      title.textContent = select.dataset.ticketTitle || "Ticket";
+      details.value = "";
+      dialog.showModal();
+      return;
+    }
 
-      form.requestSubmit();
-      select.dataset.previousValue = select.value;
-    });
+    form.requestSubmit();
     select.dataset.previousValue = select.value;
   });
+});
+
+document.querySelectorAll("[data-update-form]").forEach((form) => {
+  form.addEventListener("submit", () => {
+    if (form.dataset.submitting === "true") return;
+    form.dataset.submitting = "true";
+    form.setAttribute("aria-busy", "true");
+    const control = form.querySelector("select");
+    if (control) {
+      control.disabled = true;
+      control.classList.add("opacity-60");
+    }
+  });
+});
 
 const resolutionDialog = document.getElementById("resolution-dialog");
 const resolutionDetails = document.getElementById("resolution-details");
