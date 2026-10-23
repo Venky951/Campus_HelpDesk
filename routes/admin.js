@@ -1,6 +1,7 @@
 const express = require("express");
 const admindashboard = express.Router();
 const adminDetails = require("../controllers/admin");
+const analytics = require("../controllers/analytics");
 const ticketComments = require("../controllers/ticket-comments");
 const notifications = require("../controllers/notifications");
 const isAuth = require("../middleware/is-auth");
@@ -38,6 +39,13 @@ admindashboard.get(
     .isInt({ min: 1, max: 10000 })
     .withMessage("Invalid page"),
   adminDetails.getadmin,
+);
+admindashboard.get("/admin/analytics", isAuth, isAdmin, analytics.getAnalytics);
+admindashboard.get(
+  "/admin/analytics/export",
+  isAuth,
+  isAdmin,
+  analytics.exportAnalytics,
 );
 admindashboard.post("/admin-logout", isAuth, isAdmin, adminDetails.postLogout);
 admindashboard.get(

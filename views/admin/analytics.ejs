@@ -1,0 +1,133 @@
+<%- include('../partials/head', { title: 'Admin Analytics' }) %>
+</head>
+<body class="bg-slate-100">
+  <nav class="bg-white shadow-md px-4 sm:px-10 py-4 flex flex-wrap gap-3 justify-between items-center">
+    <a href="/admin" class="text-xl font-bold text-blue-600">NIT Srinagar Helpdesk</a>
+    <div class="flex flex-wrap items-center gap-4">
+      <a href="/admin" class="text-blue-600 font-medium hover:underline">Dashboard</a>
+      <a href="/admin/notifications" class="text-blue-600 font-medium hover:underline">Notifications</a>
+      <span class="text-gray-700">Welcome, <%= user.username %></span>
+      <form action="/admin-logout" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">Logout</button>
+      </form>
+    </div>
+  </nav>
+
+  <main class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-8">
+    <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-blue-600">Department analytics</p>
+        <h1 class="text-3xl font-bold text-gray-800">Analytics &amp; Reports</h1>
+        <p class="mt-1 text-sm text-gray-500">Department: <%= user.department %> · Dates are reported in <%= range.timezone %>.</p>
+      </div>
+      <a href="/admin/analytics/export?range=<%= range.range %>&from=<%= range.from %>&to=<%= range.to %>" class="rounded-lg bg-blue-600 px-4 py-2 text-center font-medium text-white hover:bg-blue-700">Export CSV</a>
+    </div>
+
+    <form action="/admin/analytics" method="GET" class="grid grid-cols-1 gap-3 rounded-xl bg-white p-4 shadow-sm sm:grid-cols-4 sm:items-end">
+      <label class="text-sm font-medium text-gray-700">Reporting range
+        <select name="range" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+          <option value="7" <%= range.range === "7" ? "selected" : "" %>>Last 7 days</option>
+          <option value="30" <%= range.range === "30" ? "selected" : "" %>>Last 30 days</option>
+          <option value="90" <%= range.range === "90" ? "selected" : "" %>>Last 90 days</option>
+          <option value="custom" <%= range.range === "custom" ? "selected" : "" %>>Custom range</option>
+        </select>
+      </label>
+      <label class="text-sm font-medium text-gray-700">From (UTC)
+        <input type="date" name="from" value="<%= range.from %>" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+      </label>
+      <label class="text-sm font-medium text-gray-700">To (UTC)
+        <input type="date" name="to" value="<%= range.to %>" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+      </label>
+      <button class="rounded-lg bg-slate-800 px-4 py-2 font-medium text-white hover:bg-slate-900">Apply range</button>
+    </form>
+
+    <section aria-labelledby="overview-heading">
+      <h2 id="overview-heading" class="mb-3 text-xl font-semibold text-gray-800">Overview</h2>
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <% [
+          ["Total tickets", data.overview.total, "text-slate-700"],
+          ["Open", data.overview.open, "text-red-600"],
+          ["In Progress", data.overview.inProgress, "text-yellow-600"],
+          ["Resolved", data.overview.resolved, "text-green-600"],
+          ["Unassigned", data.overview.unassigned, "text-blue-600"],
+          ["Reopened", data.overview.reopened, "text-amber-600"],
+        ].forEach((card) => { %>
+          <div class="rounded-xl border-l-4 border-blue-400 bg-white p-4 shadow-sm">
+            <p class="text-xs font-medium text-gray-500"><%= card[0] %></p>
+            <p class="mt-2 text-2xl font-bold <%= card[2] %>"><%= card[1] %></p>
+          </div>
+        <% }) %>
+      </div>
+    </section>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section class="rounded-xl bg-white p-5 shadow-sm">
+        <h2 class="text-xl font-semibold text-gray-800">Ticket creation trend</h2>
+        <p class="mb-4 text-sm text-gray-500">Daily tickets created during the selected range (UTC).</p>
+        <% const maxTrend = Math.max(...data.trends.map((item) => item.count), 1); %>
+        <div class="space-y-2">
+          <% data.trends.forEach((item) => { %>
+            <div class="grid grid-cols-[5rem_1fr_2rem] items-center gap-2 text-xs">
+              <time><%= item.date.slice(5) %></time>
+              <progress class="h-3 w-full overflow-hidden rounded bg-slate-100 accent-blue-500" value="<%= item.count %>" max="<%= maxTrend %>"><%= item.count %></progress>
+              <span><%= item.count %></span>
+            </div>
+          <% }) %>
+        </div>
+      </section>
+
+      <section class="rounded-xl bg-white p-5 shadow-sm">
+        <h2 class="text-xl font-semibold text-gray-800">Status distribution</h2>
+        <div class="mt-4 space-y-3">
+          <% data.statuses.forEach((status, index) => { const count = data.statusCounts[index]; %>
+            <div class="flex items-center justify-between"><span><%= status %></span><span class="font-semibold"><%= count %> (<%= data.overview.total ? Math.round(count / data.overview.total * 100) : 0 %>%)</span></div>
+          <% }) %>
+        </div>
+        <h2 class="mt-6 text-xl font-semibold text-gray-800">Priority distribution</h2>
+        <div class="mt-4 space-y-3">
+          <% data.priorities.forEach((priority, index) => { const count = data.priorityCounts[index]; %>
+            <div class="flex items-center justify-between"><span><%= priority %></span><span class="font-semibold"><%= count %> (<%= data.overview.total ? Math.round(count / data.overview.total * 100) : 0 %>%)</span></div>
+          <% }) %>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-3">
+      <section class="rounded-xl bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-semibold">Resolution performance</h2>
+        <p class="mt-3 text-sm text-gray-600">Resolved during selected range: <strong><%= data.resolution.count %></strong></p>
+        <p class="mt-2 text-sm text-gray-600">Average creation-to-resolution time: <strong><%= data.resolution.averageHours === null ? "No data" : `${data.resolution.averageHours} hours` %></strong></p>
+        <p class="mt-2 text-sm text-gray-600">Confirmed resolutions: <strong><%= data.resolution.confirmed %></strong></p>
+      </section>
+      <section class="rounded-xl bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-semibold">Reopening</h2>
+        <p class="mt-3 text-sm text-gray-600">Tickets reopened in range: <strong><%= data.reopening.tickets %></strong></p>
+        <p class="mt-2 text-sm text-gray-600">Total reopening events: <strong><%= data.reopening.events %></strong></p>
+        <p class="mt-2 text-sm text-gray-600">Percentage of tickets created in range: <strong><%= data.reopening.percentage %>%</strong> (<%= data.reopening.denominator %> tickets)</p>
+      </section>
+      <section class="rounded-xl bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-semibold">Student feedback</h2>
+        <p class="mt-3 text-sm text-gray-600">Current submissions in range: <strong><%= data.feedback.count %></strong></p>
+        <p class="mt-2 text-sm text-gray-600">Average rating: <strong><%= data.feedback.average === null ? "No data" : `${data.feedback.average} / 5` %></strong></p>
+        <p class="mt-2 text-sm text-gray-600">1★–5★: <strong><%= data.feedback.distribution.join(" · ") %></strong></p>
+      </section>
+    </div>
+
+    <section class="rounded-xl bg-white p-5 shadow-sm">
+      <h2 class="text-xl font-semibold text-gray-800">Current administrator workload</h2>
+      <p class="mb-4 text-sm text-gray-500">Current assignments in <%= user.department %>; this is not an individual performance rating.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[650px] text-left text-sm">
+          <thead class="bg-slate-100"><tr><th class="p-3">Administrator</th><th class="p-3">Assigned</th><th class="p-3">Open</th><th class="p-3">In Progress</th><th class="p-3">Resolved</th></tr></thead>
+          <tbody>
+            <% data.workload.forEach((admin) => { %>
+              <tr class="border-t"><td class="p-3 font-medium"><%= admin.username %></td><td class="p-3"><%= admin.total || 0 %></td><td class="p-3"><%= admin.open || 0 %></td><td class="p-3"><%= admin.inProgress || 0 %></td><td class="p-3"><%= admin.resolved || 0 %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

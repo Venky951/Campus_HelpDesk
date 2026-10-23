@@ -42,5 +42,6 @@ const ticketHistorySchema = new mongoose.Schema(
 );
 
 ticketHistorySchema.index({ ticket: 1, createdAt: 1 });
+ticketHistorySchema.index({ action: 1, createdAt: 1 });
 
 module.exports = mongoose.model("TicketHistory", ticketHistorySchema);
