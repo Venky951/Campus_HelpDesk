@@ -83,6 +83,32 @@ If `INTEGRATION_MONGO_URI` is not set, the integration tests are reported as ski
 
 The integration suite creates deterministic users and tickets, exercises real HTTP requests with persistent sessions and CSRF tokens, and removes all test data by dropping only the verified test database. Do not point it at production or a normal development database.
 
+### GridFS attachment orphan reports
+
+Attachments use the `attachments` GridFS bucket. Each uploaded file has a metadata record in `attachments.files` and one or more binary chunk records in `attachments.chunks`; the ticket stores the file identifier in `attachment.fileId`.
+
+An orphan can be caused by a failed request after the GridFS upload has finished but before the ticket reference is saved, or by an interrupted/inconsistent GridFS write. A file is not considered a deletion candidate merely because it is old or unreferenced. The report:
+
+- protects files referenced by any ticket;
+- reports recent files as protected until the minimum age has elapsed;
+- reports recent and older incomplete files in separate categories; neither category is eligible for review because its chunk sequence does not match the file length and chunk size;
+- reports chunks whose `files_id` has no corresponding file record separately; and
+- treats files owned by another or unknown application as uncertain.
+
+The report is detection-only. It never deletes files or chunks, is never run automatically, and does not expose file contents or filenames. Completed, owned, unreferenced files older than the configured threshold are listed as `eligibleForReview`; this is not permission to delete. The default minimum age is 24 hours; configure a more conservative value with `GRIDFS_ORPHAN_MIN_AGE_HOURS` (at least 1 hour).
+
+To run a dry-run report, use only a disposable database:
+
+```powershell
+$env:GRIDFS_CLEANUP_MONGO_URI = "mongodb://127.0.0.1:27017/campus_helpdesk_test_local"
+$env:GRIDFS_ORPHAN_MIN_AGE_HOURS = "48"
+npm run gridfs:orphan-report
+```
+
+The command requires an explicit `GRIDFS_CLEANUP_MONGO_URI` whose database name matches `campus_helpdesk_test_<name>`. It refuses missing, malformed, ordinary development, and production database targets. It also rechecks a candidate's file ownership, chunk completeness, minimum age, and ticket references immediately before reporting `eligibleForReview` through the verification helper. Deletion is intentionally not implemented because the existing upload lifecycle cannot guarantee that an apparently unreferenced file is safe to remove under all concurrent and recovery scenarios.
+
+Known limitations include the inability to prove ownership for files without the application's metadata marker and the inability to recover the intent of an interrupted upload. Those records remain report-only and must be reviewed using a separate, controlled operational process.
+
 ### 4. Start the Development Server
 
 ```bash

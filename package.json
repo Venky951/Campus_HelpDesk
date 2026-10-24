@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node --test",
     "test:integration": "node --test test/integration.test.js",
+    "gridfs:orphan-report": "node utils/gridfs-orphan-report.js",
     "start": "node app.js",
     "dev": "node --watch app.js",
     "build:css": "node build-tailwind.js",

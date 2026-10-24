@@ -104,45 +104,9 @@ const downloadAttachment = (fileId) => {
   return getBucket().openDownloadStream(new ObjectId(fileId));
 };
 
-const cleanupOrphanedAttachments = async (Ticket) => {
-  const referenced = new Set();
-  const tickets = await Ticket.find({ "attachment.fileId": { $exists: true } })
-    .select("attachment.fileId")
-    .lean();
-  tickets.forEach((ticket) => referenced.add(String(ticket.attachment.fileId)));
-
-  const files = await mongoose.connection.db
-    .collection(`${BUCKET_NAME}.files`)
-    .find({ "metadata.application": "campus-helpdesk" })
-    .project({ _id: 1 })
-    .toArray();
-
-  const orphanedFileIds = files
-    .filter((file) => !referenced.has(String(file._id)))
-    .map((file) => file._id);
-  await Promise.all(
-    orphanedFileIds.map((fileId) => deleteAttachment(fileId)),
-  );
-  if (orphanedFileIds.length > 0) {
-    await mongoose.connection.db
-      .collection(`${BUCKET_NAME}.chunks`)
-      .deleteMany({ files_id: { $in: orphanedFileIds } });
-  }
-
-  const allFiles = await mongoose.connection.db
-    .collection(`${BUCKET_NAME}.files`)
-    .find({})
-    .project({ _id: 1 })
-    .toArray();
-  await mongoose.connection.db
-    .collection(`${BUCKET_NAME}.chunks`)
-    .deleteMany({ files_id: { $nin: allFiles.map((file) => file._id) } });
-};
-
 module.exports = {
   ALLOWED_ATTACHMENTS,
   MAX_ATTACHMENT_SIZE,
-  cleanupOrphanedAttachments,
   deleteAttachment,
   downloadAttachment,
   uploadAttachment,
