@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const { getIntegrationMongoUri } = require("../utils/integration-config");
 const {
   REQUIRED_ENVIRONMENT_VARIABLES,
   validateRequiredEnvironment,
@@ -44,4 +45,36 @@ test("GridFS orphan cleanup is not activated automatically", () => {
   assert.doesNotMatch(appSource, /cleanupOrphanedAttachments\s*\(/);
   assert.match(readme, /Orphan cleanup is intentionally not run automatically/);
   assert.match(readme, /upload grace period/);
+});
+
+test("integration database configuration fails closed for unsafe targets", () => {
+  assert.throws(
+    () =>
+      getIntegrationMongoUri({
+        INTEGRATION_MONGO_URI:
+          "mongodb://127.0.0.1:27017/campus_helpdesk_test_local",
+        MONGO_URI:
+          "mongodb://127.0.0.1:27017/campus_helpdesk_test_local",
+      }),
+    /different from MONGO_URI/,
+  );
+  assert.throws(
+    () =>
+      getIntegrationMongoUri({
+        INTEGRATION_MONGO_URI:
+          "mongodb://127.0.0.1:27017/ordinary-development-db",
+      }),
+    /must match campus_helpdesk_test/,
+  );
+});
+
+test("integration database configuration accepts only an explicit disposable target", () => {
+  assert.equal(
+    getIntegrationMongoUri({
+      INTEGRATION_MONGO_URI:
+        "mongodb://127.0.0.1:27017/campus_helpdesk_test_local",
+    }).databaseName,
+    "campus_helpdesk_test_local",
+  );
+  assert.equal(getIntegrationMongoUri({}), null);
 });

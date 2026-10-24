@@ -66,6 +66,23 @@ The application validates `MONGO_URI` and `SESSION_SECRET` before initializing t
 
 GridFS attachments are stored in MongoDB. Orphan cleanup is intentionally not run automatically: uploads create a GridFS file before the ticket reference is saved, so an automatic cleanup job could delete a valid in-progress upload. Use a separately controlled maintenance process with an upload grace period and operational locking before removing confirmed orphaned files.
 
+### Integration tests
+
+Database-backed HTTP tests are intentionally separate from `npm test`. They require an explicit MongoDB URI in `INTEGRATION_MONGO_URI`; the application never falls back to `MONGO_URI` for these tests.
+
+The URI must target a database named `campus_helpdesk_test_<name>`, and it must not target the database named by `MONGO_URI`. The test harness verifies these rules before connecting, drops only the verified disposable database, and closes both the Mongoose and session-store connections afterward.
+
+For example, with a separately configured local MongoDB instance:
+
+```powershell
+$env:INTEGRATION_MONGO_URI = "mongodb://127.0.0.1:27017/campus_helpdesk_test_local"
+npm run test:integration
+```
+
+If `INTEGRATION_MONGO_URI` is not set, the integration tests are reported as skipped because no safe disposable database target is available. A malformed URI, a non-MongoDB URI, a missing database name, a database name outside the `campus_helpdesk_test_<name>` pattern, or a target matching `MONGO_URI` fails closed instead of running destructive cleanup.
+
+The integration suite creates deterministic users and tickets, exercises real HTTP requests with persistent sessions and CSRF tokens, and removes all test data by dropping only the verified test database. Do not point it at production or a normal development database.
+
 ### 4. Start the Development Server
 
 ```bash

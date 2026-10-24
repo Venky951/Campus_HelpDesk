@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "node --test",
+    "test:integration": "node --test test/integration.test.js",
     "start": "node app.js",
     "dev": "node --watch app.js",
     "build:css": "node build-tailwind.js",
